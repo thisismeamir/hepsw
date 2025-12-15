@@ -1,0 +1,55 @@
+{
+  "repositories": [
+    {
+      "name": "root",
+      "url": "https://github.com/root-project/root.git",
+      "branch": "latest-stable",
+      "category": "core",
+      "required": true,
+      "description": "ROOT Data Analysis Framework"
+    },
+    {
+      "name": "geant4",
+      "url": "https://github.com/Geant4/geant4.git",
+      "branch": "v11.2.0",
+      "category": "core",
+      "required": true,
+      "description": "Geant4 Simulation Toolkit"
+    },
+    {
+      "name": "DD4hep",
+      "url": "https://github.com/AIDASoft/DD4hep.git",
+      "branch": "v01-27-02",
+      "category": "detector",
+      "required": false,
+      "depends_on": ["root", "geant4"],
+      "description": "Detector Description for HEP"
+    },
+    {
+      "name": "FCCSW",
+      "url": "https://github.com/HEP-FCC/FCCSW.git",
+      "branch": "main",
+      "category": "project",
+      "required": false,
+      "projects": ["fccsw"],
+      "depends_on": ["root", "geant4", "DD4hep", "Gaudi"],
+      "description": "FCC Software Framework"
+    },
+    {
+      "name": "genie",
+      "url": "https://github.com/GENIE-MC/Generator.git",
+      "branch": "R-3_04_00",
+      "category": "generator",
+      "required": false,
+      "projects": ["dune"],
+      "description": "GENIE Neutrino Generator"
+    }
+  ],
+  "categories": {
+    "core": "Essential HEP libraries",
+    "detector": "Detector description tools",
+    "generator": "Event generators",
+    "analysis": "Analysis frameworks",
+    "project": "Project-specific software"
+  }
+}
