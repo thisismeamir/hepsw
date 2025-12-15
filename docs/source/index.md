@@ -1,7 +1,9 @@
-# hepsw documentation
+# HEP SW 
 
-A source-first, reproducible documentation and build reference for
-High Energy Physics software on Linux.
+Welcome to HEP SW documentation, where we document build process, dependencies, and modules of HEP stack from the ground-up. Due to the fact that most of the documentation of software regarding high-energy physics are either focused on experiment and usage, or consider isolation in their build manuals; [HEPSW](https://github.com/thisismeamir/hepsw) provides a clear, guided, semi-automated build hub for software, and libraries of high-energy physics.
+
+
+This project is currently maintained by Amir H. Ebrahimnezhad. For discussions, you can contact me on cern mattermost server, and for code issues, bugs, and help open an issue.
 
 ```{toctree}
 :maxdepth: 2
