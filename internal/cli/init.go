@@ -23,6 +23,7 @@ func runInit(cmd *cobra.Command, args []string) {
 		PrintError("For initialization, please provide exactly one argument: the path to the workspace directory.\nExample: hepsw init /path/to/workspace")
 		os.Exit(1)
 	}
+
 	PrintSection("HepSW Workspace initialization")
 	// Implementation of the initialization logic goes here
 	workSpaceDir := args[0]
