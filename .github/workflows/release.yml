@@ -1,0 +1,463 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build for ${{ matrix.os }}-${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          # Linux AMD64
+          - os: linux
+            arch: amd64
+            goos: linux
+            goarch: amd64
+          # Linux ARM64
+          - os: linux
+            arch: arm64
+            goos: linux
+            goarch: arm64
+          # macOS AMD64
+          - os: darwin
+            arch: amd64
+            goos: darwin
+            goarch: amd64
+          # macOS ARM64 (Apple Silicon)
+          - os: darwin
+            arch: arm64
+            goos: darwin
+            goarch: arm64
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Get version
+        id: version
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+          else
+            VERSION=$(git describe --tags --always --dirty)
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Build binary
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: 0
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          BINARY_NAME="hepsw-${{ matrix.os }}-${{ matrix.arch }}"
+          
+          go build \
+            -ldflags "-X main.Version=$VERSION -s -w" \
+            -o "$BINARY_NAME" \
+            ./cmd/hepsw
+          
+          # Create tarball
+          tar czf "${BINARY_NAME}.tar.gz" "$BINARY_NAME"
+          
+          # Generate checksum
+          sha256sum "${BINARY_NAME}.tar.gz" > "${BINARY_NAME}.tar.gz.sha256"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: hepsw-${{ matrix.os }}-${{ matrix.arch }}
+          path: |
+            hepsw-${{ matrix.os }}-${{ matrix.arch }}.tar.gz
+            hepsw-${{ matrix.os }}-${{ matrix.arch }}.tar.gz.sha256
+
+  package-deb:
+    name: Build Debian/Ubuntu Package
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download Linux AMD64 binary
+        uses: actions/download-artifact@v4
+        with:
+          name: hepsw-linux-amd64
+
+      - name: Get version
+        id: version
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/v}
+          else
+            VERSION="0.0.0-dev"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Build .deb package
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          ARCH=amd64
+          PKG_DIR="hepsw_${VERSION}_${ARCH}"
+          
+          # Extract binary
+          tar xzf hepsw-linux-amd64.tar.gz
+          
+          # Create package structure
+          mkdir -p "$PKG_DIR/usr/local/bin"
+          mkdir -p "$PKG_DIR/DEBIAN"
+          
+          # Copy binary
+          cp hepsw-linux-amd64 "$PKG_DIR/usr/local/bin/hepsw"
+          chmod +x "$PKG_DIR/usr/local/bin/hepsw"
+          
+          # Create control file
+          cat > "$PKG_DIR/DEBIAN/control" << EOF
+          Package: hepsw
+          Version: $VERSION
+          Section: science
+          Priority: optional
+          Architecture: $ARCH
+          Maintainer: HepSW Team <contact@example.com>
+          Description: Source-First Build System for High Energy Physics Software
+           HepSW is a transparent, reproducible framework for building and managing
+           HEP software stacks on Linux systems from source.
+          Homepage: https://github.com/thisismeamir/hepsw
+          EOF
+          
+          # Build package
+          dpkg-deb --build "$PKG_DIR"
+          
+          # Generate checksum
+          sha256sum "hepsw_${VERSION}_${ARCH}.deb" > "hepsw_${VERSION}_${ARCH}.deb.sha256"
+
+      - name: Upload .deb package
+        uses: actions/upload-artifact@v4
+        with:
+          name: debian-package
+          path: |
+            hepsw_*.deb
+            hepsw_*.deb.sha256
+
+  package-rpm:
+    name: Build RPM Package
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download Linux AMD64 binary
+        uses: actions/download-artifact@v4
+        with:
+          name: hepsw-linux-amd64
+
+      - name: Install RPM tools
+        run: sudo apt-get update && sudo apt-get install -y rpm
+
+      - name: Get version
+        id: version
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/v}
+          else
+            VERSION="0.0.0"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Build .rpm package
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          RELEASE=1
+          ARCH=x86_64
+          
+          # Extract binary
+          tar xzf hepsw-linux-amd64.tar.gz
+          
+          # Create RPM build structure
+          mkdir -p ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+          mkdir -p ~/rpmbuild/BUILDROOT/hepsw-${VERSION}-${RELEASE}.${ARCH}/usr/local/bin
+          
+          # Copy binary
+          cp hepsw-linux-amd64 ~/rpmbuild/BUILDROOT/hepsw-${VERSION}-${RELEASE}.${ARCH}/usr/local/bin/hepsw
+          chmod +x ~/rpmbuild/BUILDROOT/hepsw-${VERSION}-${RELEASE}.${ARCH}/usr/local/bin/hepsw
+          
+          # Create spec file
+          cat > ~/rpmbuild/SPECS/hepsw.spec << EOF
+          Name:           hepsw
+          Version:        $VERSION
+          Release:        $RELEASE
+          Summary:        Source-First Build System for High Energy Physics Software
+          License:        Apache-2.0
+          URL:            https://github.com/thisismeamir/hepsw
+          
+          %description
+          HepSW is a transparent, reproducible framework for building and managing
+          HEP software stacks on Linux systems from source.
+          
+          %files
+          /usr/local/bin/hepsw
+          
+          %changelog
+          * $(date "+%a %b %d %Y") HepSW Team <contact@example.com> - $VERSION-$RELEASE
+          - Release $VERSION
+          EOF
+          
+          # Build RPM
+          rpmbuild -bb ~/rpmbuild/SPECS/hepsw.spec
+          
+          # Copy to working directory
+          cp ~/rpmbuild/RPMS/${ARCH}/hepsw-${VERSION}-${RELEASE}.${ARCH}.rpm .
+          
+          # Generate checksum
+          sha256sum "hepsw-${VERSION}-${RELEASE}.${ARCH}.rpm" > "hepsw-${VERSION}-${RELEASE}.${ARCH}.rpm.sha256"
+
+      - name: Upload .rpm package
+        uses: actions/upload-artifact@v4
+        with:
+          name: rpm-package
+          path: |
+            hepsw-*.rpm
+            hepsw-*.rpm.sha256
+
+  package-arch:
+    name: Build Arch Linux Package
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download Linux AMD64 binary
+        uses: actions/download-artifact@v4
+        with:
+          name: hepsw-linux-amd64
+
+      - name: Get version
+        id: version
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/v}
+          else
+            VERSION="0.0.0"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create PKGBUILD
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          
+          # Extract binary
+          tar xzf hepsw-linux-amd64.tar.gz
+          
+          # Create PKGBUILD directory
+          mkdir -p arch-pkg
+          cp hepsw-linux-amd64 arch-pkg/
+          
+          cat > arch-pkg/PKGBUILD << 'EOF'
+          # Maintainer: HepSW Team <contact@example.com>
+          pkgname=hepsw
+          pkgver=${{ steps.version.outputs.version }}
+          pkgrel=1
+          pkgdesc="Source-First Build System for High Energy Physics Software"
+          arch=('x86_64')
+          url="https://github.com/thisismeamir/hepsw"
+          license=('Apache')
+          
+          package() {
+            install -Dm755 "${srcdir}/hepsw-linux-amd64" "${pkgdir}/usr/bin/hepsw"
+          }
+          EOF
+          
+          # Create tarball for AUR
+          tar czf "hepsw-${VERSION}-pkgbuild.tar.gz" -C arch-pkg PKGBUILD
+          sha256sum "hepsw-${VERSION}-pkgbuild.tar.gz" > "hepsw-${VERSION}-pkgbuild.tar.gz.sha256"
+
+      - name: Upload PKGBUILD
+        uses: actions/upload-artifact@v4
+        with:
+          name: arch-package
+          path: |
+            hepsw-*-pkgbuild.tar.gz
+            hepsw-*-pkgbuild.tar.gz.sha256
+
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [build, package-deb, package-rpm, package-arch]
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Prepare release files
+        run: |
+          mkdir release-files
+          find artifacts -type f -name "*.tar.gz" -exec cp {} release-files/ \;
+          find artifacts -type f -name "*.sha256" -exec cp {} release-files/ \;
+          find artifacts -type f -name "*.deb" -exec cp {} release-files/ \;
+          find artifacts -type f -name "*.rpm" -exec cp {} release-files/ \;
+          ls -lh release-files/
+
+      - name: Generate release notes
+        id: notes
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          
+          cat > release-notes.md << EOF
+          # HepSW $VERSION
+          
+          ## Installation
+          
+          ### Binary Download
+          
+          Download the appropriate binary for your system:
+          
+          **Linux (x86_64):**
+          \`\`\`bash
+          curl -L https://github.com/thisismeamir/hepsw/releases/download/$VERSION/hepsw-linux-amd64.tar.gz | tar xz
+          sudo mv hepsw-linux-amd64 /usr/local/bin/hepsw
+          chmod +x /usr/local/bin/hepsw
+          \`\`\`
+          
+          **macOS (Intel):**
+          \`\`\`bash
+          curl -L https://github.com/thisismeamir/hepsw/releases/download/$VERSION/hepsw-darwin-amd64.tar.gz | tar xz
+          sudo mv hepsw-darwin-amd64 /usr/local/bin/hepsw
+          chmod +x /usr/local/bin/hepsw
+          \`\`\`
+          
+          **macOS (Apple Silicon):**
+          \`\`\`bash
+          curl -L https://github.com/thisismeamir/hepsw/releases/download/$VERSION/hepsw-darwin-arm64.tar.gz | tar xz
+          sudo mv hepsw-darwin-arm64 /usr/local/bin/hepsw
+          chmod +x /usr/local/bin/hepsw
+          \`\`\`
+          
+          ### Package Managers
+          
+          **Debian/Ubuntu:**
+          \`\`\`bash
+          wget https://github.com/thisismeamir/hepsw/releases/download/$VERSION/hepsw_*_amd64.deb
+          sudo dpkg -i hepsw_*_amd64.deb
+          \`\`\`
+          
+          **Fedora/RHEL/CentOS:**
+          \`\`\`bash
+          wget https://github.com/thisismeamir/hepsw/releases/download/$VERSION/hepsw-*.x86_64.rpm
+          sudo rpm -i hepsw-*.x86_64.rpm
+          \`\`\`
+          
+          **Arch Linux:**
+          Download the PKGBUILD and build locally or submit to AUR.
+          
+          ## Verification
+          
+          All release artifacts include SHA256 checksums:
+          \`\`\`bash
+          sha256sum -c hepsw-linux-amd64.tar.gz.sha256
+          \`\`\`
+          
+          ## What's New
+          
+          See [CHANGELOG.md](https://github.com/thisismeamir/hepsw/blob/main/CHANGELOG.md) for details.
+          
+          ## Quick Start
+          
+          \`\`\`bash
+          # Initialize workspace
+          hepsw init ~/hep-workspace
+          
+          # Build a package
+          hepsw build root
+          
+          # Use the software
+          source \$(hepsw env path root)
+          root -b
+          \`\`\`
+          
+          ## Full Documentation
+          
+          https://github.com/thisismeamir/hepsw
+          EOF
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: release-files/*
+          body_path: release-notes.md
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  homebrew:
+    name: Update Homebrew Formula
+    runs-on: ubuntu-latest
+    needs: release
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - name: Checkout homebrew-hepsw
+        uses: actions/checkout@v4
+        with:
+          repository: thisismeamir/homebrew-hepsw
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+
+      - name: Update formula
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          
+          # Download and calculate SHA256
+          curl -sL "https://github.com/thisismeamir/hepsw/archive/v${VERSION}.tar.gz" -o hepsw.tar.gz
+          SHA256=$(sha256sum hepsw.tar.gz | awk '{print $1}')
+          
+          # Update formula
+          cat > Formula/hepsw.rb << EOF
+          class Hepsw < Formula
+            desc "Source-First Build System for High Energy Physics Software"
+            homepage "https://github.com/thisismeamir/hepsw"
+            url "https://github.com/thisismeamir/hepsw/archive/v${VERSION}.tar.gz"
+            sha256 "${SHA256}"
+            license "Apache-2.0"
+          
+            depends_on "go" => :build
+          
+            def install
+              system "go", "build", *std_go_args(ldflags: "-s -w -X main.Version=#{version}"), "./cmd/hepsw"
+            end
+          
+            test do
+              assert_match version.to_s, shell_output("#{bin}/hepsw version")
+            end
+          end
+          EOF
+          
+          # Commit and push
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add Formula/hepsw.rb
+          git commit -m "Update hepsw to ${VERSION}"
+          git push
