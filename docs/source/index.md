@@ -1,9 +1,16 @@
-# HEP SW 
+# HepSW
 
-Welcome to HEP SW documentation, where we document build process, dependencies, and modules of HEP stack from the ground-up. Due to the fact that most of the documentation of software regarding high-energy physics are either focused on experiment and usage, or consider isolation in their build manuals; [HEPSW](https://github.com/thisismeamir/hepsw) provides a clear, guided, semi-automated build hub for software, and libraries of high-energy physics.
+HepSW is a source-first, reproducible software framework for building, packaging, and composing High Energy Physics (HEP) software stacks on Linux systems.
 
+It provides a single, explicit description of how HEP software is built—covering compilers, dependencies, build configurations, and environment assumptions—without relying on opaque binary package managers or pre-built images. Instead of distributing frozen states, HepSW records build intent and provenance, allowing software environments to be reconstructed deterministically across different Linux distributions, institutions, and timescales.
 
-This project is currently maintained by Amir H. Ebrahimnezhad. For discussions, you can contact me on cern mattermost server, and for code issues, bugs, and help open an issue.
+HepSW is designed to assist researchers in assembling and evolving their software stacks, rather than requiring them to author low-level build definitions themselves. Users may rely on curated build descriptions and workflows, while HepSW ensures that dependencies remain explicit, versioned, and internally consistent as the stack evolves. When changes occur—such as compiler upgrades or dependency updates—the system is structured to expose breakage early and transparently, rather than hiding it behind implicit state.
+
+For each supported package, HepSW also provides structured documentation describing its role in the stack, build requirements, dependency relationships, and known compatibility constraints. This documentation is treated as part of the software definition itself, ensuring that knowledge about how and why software is built is preserved alongside the build process.
+
+HepSW does not act as a centralized repository of source code. Instead, it retrieves upstream sources directly—typically from official releases or version-controlled repositories such as GitHub—tracking versions explicitly and keeping local build artifacts isolated and clean. This enables the use of current software versions over time, while maintaining traceability and reproducibility across updates.
+
+This documentation serves as a practical guide to using HepSW: understanding the structure of HEP software stacks, building and updating software from source, managing dependencies and version constraints, and assembling robust environments for research and analysis without relying on fragile, ad-hoc setups.
 
 ```{toctree}
 :maxdepth: 2
