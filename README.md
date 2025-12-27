@@ -215,7 +215,7 @@ go mod download
 make build
 
 # Run tests
-make test
+make tests
 
 # Install locally
 make install
