@@ -4,7 +4,8 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
+	"github.com/thisismeamir/hepsw/internal/remote"
+	"github.com/thisismeamir/hepsw/utils"
 )
 
 // Initialization command that sets up a new HepSW workspace, configures environment variables, and creates necessary directories and files.
@@ -18,89 +19,78 @@ var initCmd = &cobra.Command{
 }
 
 func runInit(cmd *cobra.Command, args []string) {
-	// Assert exactly one argument is provided (workspace directory)
-	if len(args) != 1 {
-		PrintError("For initialization, please provide exactly one argument: the path to the workspace directory.\nExample: hepsw init /path/to/workspace")
+	PrintSection("Initializing HepSW...")
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		PrintError("Error getting home directory got" + " " + err.Error())
 		os.Exit(1)
 	}
 
-	PrintSection("HepSW Workspace initialization")
-	// Implementation of the initialization logic goes here
-	workSpaceDir := args[0]
-	// assert workspace directory exists or create it
-	if _, err := os.Stat(workSpaceDir); os.IsNotExist(err) {
-		PrintInfo("Creating workspace directory: " + workSpaceDir)
-		err := os.MkdirAll(workSpaceDir, 0755)
-		if err != nil {
-			panic(err)
-		}
+	// Creating ~/.hepsw directory
+	hepswPath := homeDir + "/.hepsw"
+	err = utils.CreateDirectory(hepswPath)
+	if err != nil {
+		PrintError("Error creating HepSW directory " + err.Error())
+		os.Exit(1)
 	} else {
-		PrintWarning("Workspace directory already exists: " + workSpaceDir)
+		PrintSuccess("HepSW directory is ready!")
 	}
-	PrintSection("Looking for subdirectories...")
-	// Creating necessary subdirectories
-	subDirs := []string{"packages", "build", "install", "logs"}
-	for _, dir := range subDirs {
-		fullPath := workSpaceDir + "/" + dir
-		if _, err := os.Stat(fullPath); os.IsNotExist(err) {
-			PrintInfo("Creating subdirectory: " + fullPath)
-			err := os.MkdirAll(fullPath, 0755)
-			if err != nil {
-				PrintError("Something went wrong while creating subdirectory: " + fullPath)
-				panic(err)
-			}
+
+	// Creating subdirectories
+	subdirectories := []string{"logs", "builds", "sources", "installs", "envs"}
+
+	for _, item := range subdirectories {
+		err = utils.CreateDirectory(hepswPath + "/" + item)
+		if err != nil {
+			PrintError("Error creating HepSW directory " + err.Error())
+			os.Exit(1)
 		} else {
-			PrintWarning("Subdirectory already exists: " + fullPath)
+			PrintSuccess(hepswPath + "/" + item + " directory is ready!")
 		}
 	}
 
-	// create config file
-	configFilePath := workSpaceDir + "/hepsw.yaml"
-	if _, err := os.Stat(configFilePath); os.IsNotExist(err) {
-		PrintInfo("Creating config file: " + configFilePath)
-		file, err := os.Create(configFilePath)
+	// Fetching and initializing index repo
+	repoDir := hepswPath + "/index"
+	// Check if the index repo exists
+	repoExists := remote.RepoExists(repoDir)
+	if repoExists {
+		repo, err := remote.OpenRepo(repoDir)
 		if err != nil {
-			panic(err)
+			PrintError("Error opening repo " + err.Error())
+			os.Exit(1)
 		}
-		defer func(file *os.File) {
-			err := file.Close()
+		repoHasChanges, err := remote.HasLocalChanges(repo)
+		if err != nil {
+			PrintError("Error checking if repo has changes " + err.Error())
+		}
+		if repoHasChanges {
+			PrintWarning("You should not edit the content of index repo, resetting local changes...")
+			err := remote.ResetLocalChanges(repo)
 			if err != nil {
-				panic(err)
+				PrintError("Error resetting local changes " + err.Error())
 			}
-		}(file)
-
-		PrintInfo("Writing defaults in config file: " + configFilePath)
-		// Adding default content to config file
-		configuration := viper.New()
-		configuration.SetConfigType("yaml")
-		configuration.Set("workspace", workSpaceDir)
-		configuration.Set("packages", workSpaceDir+"/packages")
-		configuration.Set("build", workSpaceDir+"/build")
-		configuration.Set("installs", workSpaceDir+"/install")
-		configuration.Set("logs", workSpaceDir+"/logs")
-
-		err2 := configuration.WriteConfigAs(configFilePath)
-		if err2 != nil {
-			PrintError("Error writing config file: " + configFilePath)
-			panic(err2)
 		}
-
+		repoHasUpdate, err := remote.HasRemoteUpdates(repo, "master")
+		if repoHasUpdate {
+			PrintInfo("Index repo has updates.")
+			err := remote.FetchRemote(repo, "master")
+			if err != nil {
+				PrintError("Error fetching remote " + err.Error())
+				PrintWarning("Might not be update repository for better indexing.")
+			}
+			err = remote.PullChanges(repo, "master")
+			if err != nil {
+				PrintError("Error pulling changes " + err.Error())
+				PrintWarning("Might not be update repository for better indexing.")
+			}
+			PrintInfo("Index repo has been updated.")
+		}
 	} else {
-		PrintWarning("Config file already exists: " + configFilePath)
-		PrintInfo("Opening existing config file: " + configFilePath)
-		configuration := viper.New()
-		configuration.SetConfigFile(configFilePath)
-		err := configuration.ReadInConfig()
+		PrintWarning("HepSW directory does not contain index repository cloning...")
+		err := remote.CloneRepo(repoDir, "master")
 		if err != nil {
-			PrintError("Error reading config file: " + configFilePath)
-			panic(err)
-		}
-		PrintInfo("Config file loaded successfully: " + configFilePath)
-		PrintSection("Configuration: ")
-		settings := configuration.AllSettings()
-		for key, value := range settings {
-			PrintInfo(key + ": " + value.(string))
+			PrintError("Error cloning repo " + err.Error())
+			os.Exit(1)
 		}
 	}
-
 }
