@@ -33,6 +33,7 @@ func CloneRepo(repoDir, branch string) error {
 		URL:           PackageIndexRepoURL,
 		ReferenceName: branchRef,
 		SingleBranch:  true,
+		Progress:      os.Stdout,
 	})
 	return err
 }
@@ -90,6 +91,7 @@ func FetchRemote(repo *git.Repository, branch string) error {
 
 // HasRemoteUpdates checks if there are updates available from the remote
 func HasRemoteUpdates(repo *git.Repository, branch string) (bool, error) {
+	_ = FetchRemote(repo, branch)
 	branchRef := plumbing.NewBranchReferenceName(branch)
 
 	// Get HEAD reference
@@ -119,5 +121,6 @@ func PullChanges(repo *git.Repository, branch string) error {
 		RemoteName:    "origin",
 		ReferenceName: branchRef,
 		Force:         true,
+		Progress:      os.Stdout,
 	})
 }
