@@ -42,16 +42,5 @@ It is also very important to note that HepSW is not a binary distribution or a p
 
 Since the HEP software ecosystem is constantly evolving, growing, and changing, we encourage contributions from the community to keep HepSW up-to-date and relevant. Whether it's adding new packages, updating existing ones, or improving documentation, contributions are welcome to help make HepSW a comprehensive resource for HEP software development and deployment.
 
-HepSW provides a cli toolkit to help with common tasks. You can install it via pip, or just use this repository as a source.
-
-```bash
-pip install hepsw
-```
-
-Once installed, you can use the `hepsw` command to interact with the HepSW system. For example, to list available packages, you can run:
-
-```bash
-hepsw list-packages
-```
-
-For more details on how to use HepSW, please refer to the documentation sections that follow. They cover everything from basic concepts to advanced usage, including building specific packages, managing dependencies, and troubleshooting common issues.
+HepSW provides a cli toolkit to help with common tasks. You can install it via pip, or just use this repository as a source. 
+This cli tool is the main interface of the program and provides commands to interact with the manifests, build processes, and other functionalities.

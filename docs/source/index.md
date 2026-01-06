@@ -25,4 +25,5 @@ This documentation serves as a practical guide to using HepSW: understanding the
 06-advanced/index
 07-troubleshooting/index
 08-contribution/index
+09-architecture-and-design/index
 ```
