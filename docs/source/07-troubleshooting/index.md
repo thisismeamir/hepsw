@@ -614,9 +614,8 @@ To avoid common issues:
 1. Keep HepSW updated: `hepsw upgrade`
 2. Regularly update index: `hepsw update-index`
 3. Validate manifests before building: `hepsw evaluate`
-4. Keep enough disk space (10GB+ recommended)
-5. Use `hepsw walk` before complex builds
-6. Source environment scripts after building
-7. Document custom configurations
-8. Backup your configuration: `cp ~/.hepsw/hepsw.yaml ~/backup/`
+4. Use `hepsw walk` before complex builds
+5. Source environment scripts after building
+6. Document custom configurations
+7. Backup your configuration: `cp ~/.hepsw/hepsw.yaml ~/backup/`
 
