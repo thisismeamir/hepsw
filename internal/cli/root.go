@@ -62,8 +62,6 @@ func init() {
 
 	// Add subcommands
 	rootCmd.AddCommand(initCmd)
-	rootCmd.AddCommand(findCmd)
-	rootCmd.AddCommand(searchCmd)
 }
 
 func hepswInit() {
