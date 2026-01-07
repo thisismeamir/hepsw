@@ -10,10 +10,10 @@ Finally, we will discuss best practices and tips for effectively using HepSW in 
 ```{toctree}
 :maxdepth: 2
 :numbered:
-    initialization
-    basics-of-manifests
-    searching
-    fetching
-    building
-    environment
+./initialization
+./basics-of-manifests
+./searching
+./fetching
+./building
+./environment
 ```
