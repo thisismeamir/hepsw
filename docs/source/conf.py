@@ -9,14 +9,15 @@
 project = 'hepsw'
 copyright = '2025, Amir H. Ebrahimnezhad'
 author = 'Amir H. Ebrahimnezhad'
-release = '0.0.1'
+release = '0.0.5'
 
 extensions = [
     "myst_parser",
+    "sphinx.ext.graphviz"
 ]
 
 html_theme = "alabaster"
-
+graphviz_output_format = "svg"
 source_suffix = {
     ".rst": "restructuredtext",
     ".md": "markdown",
