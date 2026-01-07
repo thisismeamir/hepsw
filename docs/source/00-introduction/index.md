@@ -14,26 +14,24 @@ HepSW uses the manifest files to provide a clear guide and steps to build and ma
 A manifest file is a YAML document like below (we'll provide more details in the following sections):
 
 ```yaml
-name: example-package
+name: example-lib
 version: 1.2.3
-description: An example package for demonstration purposes.
-dependencies:
-  - name: dependency-one
-    version: ">=2.0.0,<3.0.0"
-  - name: dependency-two
-    version: "1.5.1"
-build:
-  system_requirements:
-    - cmake
-    - gcc >=9.0
-  steps:
-    - ./configure --prefix=/opt/hep/install/example-package/1.2.3
-    - make -j8
-    - make install
-documentation:
-  url: https://example.com/docs/example-package
-  notes: |
-    This package requires specific versions of its dependencies to function correctly.
+description: A simple example library
+
+source:
+  type: tarball
+  url: https://example.com/example-lib-1.2.3.tar.gz
+
+recipe:
+  configure:
+    - name: Configure
+      command: ./configure --prefix=${INSTALL_PREFIX}
+  build:
+    - name: Build
+      command: make -j${NCORES}
+  install:
+    - name: Install
+      command: make install
 ```
 
 HepSW does not act as a centralized repository of source code. Instead, it retrieves upstream sources directly—typically from official releases or version-controlled repositories such as GitHub—tracking versions explicitly and keeping local build artifacts isolated and clean. This enables the use of current software versions over time, while maintaining traceability and reproducibility across updates.

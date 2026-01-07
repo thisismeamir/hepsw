@@ -468,7 +468,7 @@ recipe:
       target: install
 ```
 
-For further details about the recipe steps and their options, please refer to the [Manifests Revisited](../06-advanced/manifests-revisited) section.
+For further details about the recipe steps and their options, please refer to the [Manifests Revisited](../03-advanced/manifests-revisited) section.
 
 ## Complete Manifest Examples
 
