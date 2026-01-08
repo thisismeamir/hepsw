@@ -12,9 +12,14 @@ import (
 
 var initCmd = &cobra.Command{
 	Use:   "init",
-	Short: "Initialize a new HepSW workspace",
-	Long: `Initialize a new HepSW workspace by creating necessary directories,
-	configuration files, and setting up environment variables.`,
+	Short: "Initialize HepSW workspace",
+	Long: `The first step in using HepSW is to initialize a workspace. 
+This workspace will contain all the necessary directories and 
+configuration files needed to manage your software stack. to 
+initialize the workspace use:
+
+	hepsw init
+`,
 	Run: runInit,
 }
 
