@@ -8,9 +8,10 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/thisismeamir/hepsw/internal/configuration"
 )
 
-var resetCmd = &cobra.Command{
+var checkConfig = &cobra.Command{
 	Use:   "check-config",
 	Short: "Checks if the configuration is available, otherwise creates it.",
 	Long:  `Checks if the configuration is available, otherwise creates it.`,
@@ -76,7 +77,11 @@ func ConfigInit() error {
 			return err
 		}
 	} else {
-		PrintWarning("Configuration is loaded successfully.")
+		if err := configuration.ConfigHealth(); err != nil {
+			PrintError("Configuration is not healthy: " + err.Error())
+			return err
+		}
+		PrintSuccess("Configuration is loaded successfully.")
 	}
 	return nil
 }
