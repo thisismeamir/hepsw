@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/thisismeamir/hepsw/utils"
+	"github.com/thisismeamir/hepsw/internal/utils"
 )
 
 // Initialization command that sets up a new HepSW workspace, configures environment variables, and creates necessary directories and files.

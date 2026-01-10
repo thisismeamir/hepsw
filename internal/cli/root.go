@@ -7,7 +7,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/thisismeamir/hepsw/utils"
+	"github.com/thisismeamir/hepsw/internal/utils"
 )
 
 var (
@@ -62,6 +62,8 @@ func init() {
 
 	// Add subcommands
 	rootCmd.AddCommand(initCmd)
+	rootCmd.AddCommand(checkConfig)
+	rootCmd.AddCommand(syncCmd)
 }
 
 func hepswInit() {
