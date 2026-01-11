@@ -39,7 +39,7 @@ func runInit(cmd *cobra.Command, args []string) error {
 	}
 
 	// Creating subdirectories
-	subdirectories := []string{"toolchains", "sources", "builds", "installs", "envs", "logs", "third-party"}
+	subdirectories := []string{"toolchains", "sources", "builds", "installs", "envs", "logs", "thirdparty"}
 
 	for _, item := range subdirectories {
 		err = utils.CreateDirectory(hepswPath + "/" + item)
