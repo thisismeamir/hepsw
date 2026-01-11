@@ -65,7 +65,7 @@ func init() {
 func hepswInit() {
 	err := configuration.ConfigHealth()
 	if err != nil {
-		PrintError(err.Error())
+		PrintWarning(err.Error())
 	}
 }
 
