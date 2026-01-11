@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"fmt"
 	"os"
 	"path"
 	"path/filepath"
@@ -32,56 +31,56 @@ func ConfigInit() error {
 	// Checking the configuration file
 	configFilePath := filepath.Join(hepswPath, "hepsw.yaml")
 	if _, err := os.Stat(configFilePath); os.IsNotExist(err) {
-		// Creating the HepSW configuration file ~/.hepsw/hepsw.yaml
-		config := viper.New()
-		config.SetConfigType("yaml")
-		config.SetConfigName("hepsw")
-		config.AddConfigPath(hepswPath)
-		config.Set("workspace", hepswPath)
-		config.Set("sourcesDir", path.Join(hepswPath, "sources"))
-		config.Set("buildsDir", path.Join(hepswPath, "builds"))
-		config.Set("installsDir", path.Join(hepswPath, "installs"))
-		config.Set("envsDir", path.Join(hepswPath, "envs"))
-		config.Set("logsDir", path.Join(hepswPath, "logs"))
-		config.Set("thirdPartyDir", path.Join(hepswPath, "third_party"))
-		config.Set("toolchainsDir", path.Join(hepswPath, "toolchains"))
-		config.Set("indexDir", path.Join(hepswPath, "index"))
 
-		state := map[string]interface{}{
-			"packages":     map[string]interface{}{},
-			"sources":      map[string]interface{}{},
-			"environments": map[string]interface{}{},
+		config := configuration.Configuration{
+			Workspace:  hepswPath,
+			Sources:    path.Join(hepswPath, "sources"),
+			Builds:     path.Join(hepswPath, "builds"),
+			Installs:   path.Join(hepswPath, "installs"),
+			Envs:       path.Join(hepswPath, "envs"),
+			Toolchains: path.Join(hepswPath, "toolchains"),
+			Thirdparty: path.Join(hepswPath, "thirdparty"),
+			Logs:       path.Join(hepswPath, "logs"),
+			Index:      path.Join(hepswPath, "index"),
+			State: configuration.WorkspaceState{
+				Packages:     []configuration.WorkspacePackageState{},
+				Environments: []configuration.WorkspaceEnvironmentState{},
+				Sources:      []configuration.WorkspaceSourceState{},
+			},
+			UserConfig: configuration.UserConfig{
+				Verbosity:      "",
+				ParallelBuilds: 4,
+			},
 		}
 
-		userConfig := map[string]interface{}{
-			"verbosity":   map[string]interface{}{},
-			"parallelism": map[string]interface{}{},
-		}
-
-		config.Set("state", state)
-		config.Set("userConfig", userConfig)
+		newConfig := viper.New()
+		newConfig.SetConfigType("yaml")
+		newConfig.SetConfigFile(configFilePath)
+		newConfig.Set("workspace", config.Workspace)
+		newConfig.Set("builds", config.Builds)
+		newConfig.Set("sources", config.Sources)
+		newConfig.Set("envs", config.Envs)
+		newConfig.Set("installs", config.Installs)
+		newConfig.Set("toolchains", config.Toolchains)
+		newConfig.Set("thirdparty", config.Thirdparty)
+		newConfig.Set("logs", config.Logs)
+		newConfig.Set("index", config.Index)
+		newConfig.Set("state", config.State)
+		newConfig.Set("userConfig", config.UserConfig)
 
 		// Write the configuration to a file
-		err := config.WriteConfigAs(configFilePath)
-		if err != nil {
-			PrintError("Error writing config file: " + err.Error())
-			return err
+		writingError := newConfig.WriteConfigAs(configFilePath)
+		if writingError != nil {
+			PrintError("Error writing config file: " + writingError.Error())
+			return writingError
 		}
 
-		// Verify that the configuration was written correctly
-		if err := config.ReadInConfig(); err == nil {
-			PrintSuccess("Configuration loaded successfully:")
-			fmt.Println(config.AllSettings())
-		} else {
-			PrintError("Error loading configuration:" + err.Error())
-			return err
-		}
 	} else {
 		if err := configuration.ConfigHealth(); err != nil {
 			PrintError("Configuration is not healthy: " + err.Error())
 			return err
 		}
-		PrintSuccess("Configuration is loaded successfully.")
+		PrintSuccess("Configuration has been loaded successfully.")
 	}
 	return nil
 }
