@@ -36,8 +36,6 @@ func runInit(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		PrintError("Error creating HepSW directory " + err.Error())
 		return err
-	} else {
-		PrintSuccess("HepSW directory is ready!")
 	}
 
 	// Creating subdirectories
@@ -48,10 +46,9 @@ func runInit(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			PrintError("Error creating HepSW directory " + err.Error())
 			return err
-		} else {
-			PrintSuccess(hepswPath + "/" + item + " directory is ready!")
 		}
 	}
+	PrintSuccess("HepSW directory is ready!")
 
 	// Syncing local index with the remote repository.
 	_ = Sync()
