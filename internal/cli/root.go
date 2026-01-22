@@ -60,6 +60,7 @@ func init() {
 	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(checkConfig)
 	rootCmd.AddCommand(syncCmd)
+	rootCmd.AddCommand(sampleGenCmd)
 }
 
 func hepswInit() {
