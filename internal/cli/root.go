@@ -6,8 +6,8 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-	"github.com/thisismeamir/hepsw/utils"
+	"github.com/thisismeamir/hepsw/internal/configuration"
+	"github.com/thisismeamir/hepsw/internal/utils"
 )
 
 var (
@@ -56,26 +56,27 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&quiet, "quiet", "q", false,
 		"suppress non-essential output")
 
-	// Bind flags to viper (allows reading from config files and env vars)
-	_ = viper.BindPFlag("verbose", rootCmd.PersistentFlags().Lookup("verbose"))
-	_ = viper.BindPFlag("quiet", rootCmd.PersistentFlags().Lookup("quiet"))
-
 	// Add subcommands
 	rootCmd.AddCommand(initCmd)
+	rootCmd.AddCommand(checkConfig)
+	rootCmd.AddCommand(syncCmd)
 }
 
 func hepswInit() {
-	//utils.PrintHeader()
-	// Creating a hidden directory where we keep configurations, package index, etc.
-
+	err := configuration.ConfigHealth()
+	if err != nil {
+		PrintWarning(err.Error())
+	}
 }
 
 // Helper functions for colored output
+
 func PrintSuccess(msg string) {
 	fmt.Println(colorSuccess("[SUCC]"), msg)
 }
 
 func PrintError(msg string) {
+	// TODO: What the hell is to be handled for a print function anyway?
 	fmt.Fprintln(os.Stderr, colorError("[ERR!]"), msg)
 }
 
