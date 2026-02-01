@@ -13,3 +13,11 @@
     ```bash
    hepsw check-config
    ``` 
+4. Manifest evaluation
+    ```bash
+   hepsw evaluate <manifest-Path>|<package-identifier-in-index-repository> 
+    ```
+5. Manifest report generation
+    ```bash
+    hepsw report <manifest-Path>|<package-identifier-in-index-repository>
+    ```

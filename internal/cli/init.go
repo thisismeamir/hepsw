@@ -51,7 +51,7 @@ func runInit(cmd *cobra.Command, args []string) error {
 	PrintSuccess("HepSW directory is ready!")
 
 	// Syncing local index with the remote repository.
-	//_ = Sync()
+	_ = Sync()
 	_ = ConfigInit()
 	return nil
 }

@@ -53,7 +53,7 @@ type Dependency struct {
 	Version     string   `yaml:"version"`
 	ForOptions  []string `yaml:"forOptions"`
 	WithOptions []string `yaml:"withOptions"`
-	isOptional  bool     `yaml:"isOptional"`
+	IsOptional  bool     `yaml:"isOptional"`
 }
 
 type Tool struct {
