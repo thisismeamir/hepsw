@@ -148,5 +148,9 @@ func getIndexURL() string {
 
 	// Default to official repository (To be used later
 	//return "https://index.hepsw.org"
-	return filepath.Join(os.UserHomeDir(), "index.yaml")
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return "https://index.hepsw.org"
+	}
+	return filepath.Join(homeDir, ".hepsw", "index.yaml")
 }
