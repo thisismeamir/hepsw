@@ -73,3 +73,32 @@ type ReverseDependency struct {
 	VersionConstraint  string
 	Optional           bool
 }
+
+// Extension Functions
+
+func (p *Package) GetTags() []string {
+	if p.Tags == "" {
+		return []string{}
+	}
+	tags := []string{}
+	current := ""
+	for _, c := range p.Tags {
+		if c == ',' {
+			if current != "" {
+				tags = append(tags, current)
+				current = ""
+			}
+		} else {
+			current += string(c)
+		}
+	}
+	if current != "" {
+		tags = append(tags, current)
+	}
+	return tags
+}
+
+// IsAvailable checks if the version is available (not deprecated and not yanked)
+func (v *Version) IsAvailable() bool {
+	return !v.Deprecated && !v.Yanked
+}
