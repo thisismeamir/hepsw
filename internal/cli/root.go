@@ -78,7 +78,11 @@ func PrintSuccess(msg string) {
 
 func PrintError(msg string) {
 	// TODO: What the hell is to be handled for a print function anyway?
-	fmt.Fprintln(os.Stderr, colorError("[ERR!]"), msg)
+	fprintln, err := fmt.Fprintln(os.Stderr, colorError("[ERR!] "), msg)
+	if err != nil {
+		return
+	}
+	_ = fprintln
 }
 
 func PrintWarning(msg string) {
