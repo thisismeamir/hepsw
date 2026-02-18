@@ -13,7 +13,7 @@ import (
 
 // Client is the main interface to the HepSW package index
 type Client struct {
-	IndexConfig *IndexConfig
+	IndexConfig *configuration.IndexConfig
 	db          *sql.DB
 	queries     *queries.Queries
 	cache       *cache.Cache
@@ -22,6 +22,17 @@ type Client struct {
 // New creates a new HepSW index client
 func New(IndexConfig *IndexConfig) (*Client, error) {
 	if err := IndexConfig.Validate(); err != nil {
+var tableIDColumns = map[string]string{
+	"packages":     "id",
+	"versions":     "id",
+	"dependencies": "id",
+}
+
+type TableSchema struct {
+	Name      string
+	CreateSQL string
+	IDColumn  string
+}
 		return nil, err
 	}
 
