@@ -26,9 +26,6 @@ type Client struct {
 	cache       *cache.Cache
 }
 
-// New creates a new HepSW index client
-func New(IndexConfig *IndexConfig) (*Client, error) {
-	if err := IndexConfig.Validate(); err != nil {
 var tableIDColumns = map[string]string{
 	"packages":     "id",
 	"versions":     "id",
