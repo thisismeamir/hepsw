@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/thisismeamir/hepsw/internal/configuration"
 	"github.com/thisismeamir/hepsw/internal/index/client"
 	"github.com/thisismeamir/hepsw/internal/index/models"
 	"github.com/thisismeamir/hepsw/internal/index/resolver"
@@ -15,8 +16,17 @@ type Index struct {
 	resolver *resolver.Resolver
 }
 
+func Init(config *configuration.IndexConfig) (*Index, error) {
+	idx, err := New(config)
+	if err != nil {
+		return nil, err
+	}
+
+	return idx, nil
+}
+
 // New creates a new Index instance
-func New(config *client.IndexConfig) (*Index, error) {
+func New(config *configuration.IndexConfig) (*Index, error) {
 	c, err := client.New(config)
 	if err != nil {
 		return nil, err
