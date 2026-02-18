@@ -1,16 +1,16 @@
 package configuration
 
 type Configuration struct {
-	Workspace  string `yaml:"workspace"`
-	Sources    string `yaml:"sources"`
-	Builds     string `yaml:"builds"`
-	Installs   string `yaml:"installs"`
-	Envs       string `yaml:"envs"`
-	Logs       string `yaml:"logs"`
-	Toolchains string `yaml:"toolchains"`
-	Index      string `yaml:"index"`
-	Thirdparty string `yaml:"thirdparty"`
-
+	Workspace  string         `yaml:"workspace"`
+	Sources    string         `yaml:"sources"`
+	Builds     string         `yaml:"builds"`
+	Installs   string         `yaml:"installs"`
+	Envs       string         `yaml:"envs"`
+	Logs       string         `yaml:"logs"`
+	Toolchains string         `yaml:"toolchains"`
+	Index      string         `yaml:"index"`
+	Thirdparty string         `yaml:"thirdparty"`
+	LastSyncId int64          `yaml:"lastSyncId"`
 	State      WorkspaceState `yaml:"state"`
 	UserConfig UserConfig     `yaml:"userConfig"`
 }
