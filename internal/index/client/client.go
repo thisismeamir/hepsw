@@ -357,10 +357,58 @@ func OpenRemoteDatabase(config *configuration.Configuration) (*sql.DB, error) {
 		return nil, fmt.Errorf("%w: %v", utils.ErrConnectionFailed, err)
 	}
 
-	// Set connection pool settings
-	db.SetMaxOpenConns(25)
-	db.SetMaxIdleConns(5)
-	db.SetConnMaxLifetime(5 * time.Minute)
+	return db, nil
+}
+
+// OpenLocalDatabase opens (or creates) the local SQLite index database.
+func OpenLocalDatabase() (*sql.DB, error) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return nil, fmt.Errorf("could not determine home directory: %w", err)
+	}
+
+	dbDir := filepath.Join(homeDir, ".hepsw")
+	dbPath := filepath.Join(dbDir, "index.db")
+
+	// Ensure the directory exists — no-op if it already does
+	if err := os.MkdirAll(dbDir, 0755); err != nil {
+		return nil, fmt.Errorf("failed to create database directory %s: %w", dbDir, err)
+	}
+
+	// "file:" URI is the portable way to open a local SQLite with the libsql driver
+	db, err := sql.Open("libsql", "file:"+dbPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open local database, try sync --force for a fresh index: %w", err)
+	}
+
+	// Local SQLite — single writer, no pool needed
+	db.SetMaxOpenConns(1)
+
+	// Verify the file is actually a valid SQLite database (catches corruption)
+	if err := db.Ping(); err != nil {
+		db.Close()
+		return nil, fmt.Errorf("local database is corrupt or unreadable, try sync --force: %w", err)
+	}
+
+	return db, nil
+}
+
+// New creates a new HepSW index client
+func New(IndexConfig *configuration.IndexConfig) (*Client, error) {
+	// First tries to initialize using the local database at ~/.hepsw/index.db
+	db, err := OpenLocalDatabase()
+	if err != nil {
+		return nil, err
+	}
+	if IndexConfig.EnableCache {
+		c := cache.New(IndexConfig.CacheTTL)
+		return &Client{
+			IndexConfig: IndexConfig,
+			db:          db,
+			queries:     queries.New(db),
+			cache:       c,
+		}, nil
+	}
 
 	client := &Client{
 		IndexConfig: IndexConfig,
