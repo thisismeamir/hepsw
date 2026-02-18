@@ -414,13 +414,8 @@ func New(IndexConfig *configuration.IndexConfig) (*Client, error) {
 		IndexConfig: IndexConfig,
 		db:          db,
 		queries:     queries.New(db),
+		cache:       cache.New(IndexConfig.CacheTTL),
 	}
-
-	// Initialize cache if enabled
-	if IndexConfig.EnableCache {
-		client.cache = cache.New(IndexConfig.CacheTTL)
-	}
-
 	return client, nil
 }
 
@@ -473,10 +468,10 @@ func (c *Client) withRetry(ctx context.Context, fn func() error) error {
 		lastErr = err
 
 		// Don't retry certain errors
-		if err == ErrPackageNotFound || err == ErrVersionNotFound {
+		if err == utils.ErrPackageNotFound || err == utils.ErrVersionNotFound {
 			return err
 		}
 	}
 
-	return fmt.Errorf("%w: %v", ErrMaxRetriesExceeded, lastErr)
+	return fmt.Errorf("%w: %v", utils.ErrMaxRetriesExceeded, lastErr)
 }
