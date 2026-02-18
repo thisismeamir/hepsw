@@ -334,23 +334,27 @@ func OpenRemoteDatabase(config *configuration.Configuration) (*sql.DB, error) {
 		return nil, err
 	}
 
-	// Create Turso connection string
-	// Format: libsql://[url]?authToken=[token]
-	connStr := fmt.Sprintf("%s?authToken=%s", IndexConfig.DatabaseURL, IndexConfig.AuthToken)
+	// libsql driver expects: libsql://[host]?authToken=[token]
+	// DatabaseURL should already be in the form libsql://xxx.turso.io
+	connStr := fmt.Sprintf("%s?authToken=%s", config.IndexConfig.DatabaseURL, config.IndexConfig.AuthToken)
 
-	// Open database connection
 	db, err := sql.Open("libsql", connStr)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrConnectionFailed, err)
+		return nil, fmt.Errorf("%w: %v", utils.ErrConnectionFailed, err)
 	}
 
-	// Test connection
-	ctx, cancel := context.WithTimeout(context.Background(), IndexConfig.Timeout)
+	// Remote Turso — HTTP/WS underneath, not a traditional pool.
+	// 1 conn is enough; Turso handles concurrency on their end.
+	db.SetMaxOpenConns(1)
+	db.SetMaxIdleConns(1)
+	db.SetConnMaxLifetime(5 * time.Minute)
+
+	ctx, cancel := context.WithTimeout(context.Background(), config.IndexConfig.Timeout)
 	defer cancel()
 
 	if err := db.PingContext(ctx); err != nil {
 		db.Close()
-		return nil, fmt.Errorf("%w: %v", ErrConnectionFailed, err)
+		return nil, fmt.Errorf("%w: %v", utils.ErrConnectionFailed, err)
 	}
 
 	// Set connection pool settings
