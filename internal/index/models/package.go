@@ -10,8 +10,8 @@ type Package struct {
 	DocumentationURL *string   `json:"documentation_url,omitempty"`
 	Maintainer       *string   `json:"maintainer,omitempty"`
 	Tags             string    `json:"tags"` // Comma-separated
-	CreatedAt        time.Time `json:"created_at"`
-	UpdatedAt        time.Time `json:"updated_at"`
+	CreatedTime      time.Time `json:"created_time"`
+	UpdatedTime      time.Time `json:"updated_time"`
 }
 
 // GetTags returns the tags as a slice
