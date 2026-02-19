@@ -36,7 +36,6 @@ var searchCmd = &cobra.Command{
 					panic(indexError)
 				}
 				Search(context.Background(), newIndex, searchPackageIdentity.Name)
-
 			}
 		}
 	},
@@ -50,17 +49,12 @@ func Search(ctx context.Context, idx *index.Index, name string) {
 
 	if len(packages) == 0 {
 		PrintInfo("No packages found")
-		return
-	}
-
-	PrintSection("Found " + string(len(packages)) + " packages:\n")
-	for i, pkg := range packages {
-		fmt.Printf("%d. %s:\n", i, pkg.Name)
-		fmt.Printf("   %s\n", pkg.Description)
-		if pkg.Tags != "" {
-			fmt.Printf("   Tags: " + pkg.Tags)
+	} else {
+		PrintSection("Found packages for " + name + ":")
+		for i, pkg := range packages {
+			fmt.Printf("%d. %s:\n", i, colorInfo(pkg.Name))
+			fmt.Printf("   %s\n", pkg.Description)
 		}
-		fmt.Println()
 	}
 }
 
@@ -75,7 +69,7 @@ func Versions(ctx context.Context, idx *index.Index, name string) {
 		return
 	}
 
-	PrintSection("Versions of ", name, ":\n\n")
+	PrintSection("Versions of " + name + ":\n\n")
 	for _, v := range versions {
 		status := ""
 		if v.Deprecated {
@@ -111,7 +105,7 @@ func Dependencies(ctx context.Context, idx *index.Index, name, version string, s
 			return
 		}
 
-		PrintSection("Dependencies for %s@%s:\n\n", name, version)
+		PrintSection("Dependencies for %s@%s:\n\n" + name + version)
 		for _, dep := range deps {
 			optional := ""
 			if dep.Optional {
@@ -132,11 +126,11 @@ func ReverseDependency(ctx context.Context, idx *index.Index, name string) {
 	}
 
 	if len(revDeps) == 0 {
-		PrintInfo("No packages depend on ", name, "\n")
+		PrintInfo("No packages depend on " + name + "\n")
 		return
 	}
 
-	PrintSection("Packages that depend on ", name, ":\n\n")
+	PrintSection("Packages that depend on " + name + ":\n\n")
 	for _, rd := range revDeps {
 		optional := ""
 		if rd.Optional {
