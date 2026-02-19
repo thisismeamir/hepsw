@@ -1,12 +1,10 @@
 package cli
 
 import (
+	"bufio"
 	"os"
-	"path"
-	"path/filepath"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"github.com/thisismeamir/hepsw/internal/configuration"
 )
 
@@ -21,66 +19,32 @@ var checkConfig = &cobra.Command{
 }
 
 func ConfigInit() error {
-	homeDir, err := os.UserHomeDir()
+	_, err := tryLoading()
 	if err != nil {
-		return err
-	}
-
-	hepswPath := path.Join(homeDir, ".hepsw")
-
-	// Checking the configuration file
-	configFilePath := filepath.Join(hepswPath, "hepsw.yaml")
-	if _, err := os.Stat(configFilePath); os.IsNotExist(err) {
-
-		config := configuration.Configuration{
-			Workspace:  hepswPath,
-			Sources:    path.Join(hepswPath, "sources"),
-			Builds:     path.Join(hepswPath, "builds"),
-			Installs:   path.Join(hepswPath, "installs"),
-			Envs:       path.Join(hepswPath, "envs"),
-			Toolchains: path.Join(hepswPath, "toolchains"),
-			Thirdparty: path.Join(hepswPath, "thirdparty"),
-			Logs:       path.Join(hepswPath, "logs"),
-			Index:      path.Join(hepswPath, "index"),
-			State: configuration.WorkspaceState{
-				Packages:     []configuration.WorkspacePackageState{},
-				Environments: []configuration.WorkspaceEnvironmentState{},
-				Sources:      []configuration.WorkspaceSourceState{},
-			},
-			UserConfig: configuration.UserConfig{
-				Verbosity:      "",
-				ParallelBuilds: 4,
-			},
+		PrintError("Configuration file wasn't working. Do you want to create a new one? (y/n)")
+		stdin := bufio.NewReader(os.Stdin)
+		if stdin == nil {
+			err := makeDefault()
+			if err != nil {
+				return err
+			}
+		} else if input, _ := stdin.ReadString('\n'); input == "y\n" {
+			err := makeDefault()
+			if err != nil {
+				return err
+			}
+		} else {
+			PrintError("Configuration file is not working, and you chose not to create a new one. Exiting.")
 		}
-
-		newConfig := viper.New()
-		newConfig.SetConfigType("yaml")
-		newConfig.SetConfigFile(configFilePath)
-		newConfig.Set("workspace", config.Workspace)
-		newConfig.Set("builds", config.Builds)
-		newConfig.Set("sources", config.Sources)
-		newConfig.Set("envs", config.Envs)
-		newConfig.Set("installs", config.Installs)
-		newConfig.Set("toolchains", config.Toolchains)
-		newConfig.Set("thirdparty", config.Thirdparty)
-		newConfig.Set("logs", config.Logs)
-		newConfig.Set("index", config.Index)
-		newConfig.Set("state", config.State)
-		newConfig.Set("userConfig", config.UserConfig)
-
-		// Write the configuration to a file
-		writingError := newConfig.WriteConfigAs(configFilePath)
-		if writingError != nil {
-			PrintError("Error writing config file: " + writingError.Error())
-			return writingError
-		}
-
-	} else {
-		if err := configuration.ConfigHealth(); err != nil {
-			PrintError("Configuration is not healthy: " + err.Error())
-			return err
-		}
-		PrintSuccess("Configuration has been loaded successfully.")
+		return nil
 	}
 	return nil
+}
+
+func makeDefault() error {
+	return configuration.RestoreDefaultConfiguration()
+}
+
+func tryLoading() (*configuration.Configuration, error) {
+	return configuration.GetConfiguration()
 }
