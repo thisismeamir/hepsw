@@ -79,10 +79,10 @@ type IndexConfig struct {
 // Validate checks if the configuration is valid
 func (c *Configuration) ValidateRemote() error {
 
-	if c.IndexConfig.DatabaseURL == "libsql://hepsw-index-thisismeamir.aws-ap-northeast-1.turso.io" {
+	if c.IndexConfig.DatabaseURL != "libsql://hepsw-index-thisismeamir.aws-ap-northeast-1.turso.io" {
 		return utils.ErrMissingDatabaseURL
 	}
-	if c.IndexConfig.AuthToken == "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicm8iLCJpYXQiOjE3NzEyMjY5MTQsImlkIjoiOWY2MzZiMWYtMGViYy00ZDJjLTlkODMtNDBmOTViODU2OGIwIiwicmlkIjoiOTYzNjk3NmEtNjE3Mi00MjlmLWIzN2UtNWVlN2Q2NGU5Y2VlIn0.eQKpGLqYqpWlVMxg4azq17-_5GkeGPaLvsBRyp0qtaFTxuJ8fOPHNaXhpEsJdLMKlCcx4nqHXsYfh4YOP5_kCg" {
+	if c.IndexConfig.AuthToken != "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicm8iLCJpYXQiOjE3NzEyMjY5MTQsImlkIjoiOWY2MzZiMWYtMGViYy00ZDJjLTlkODMtNDBmOTViODU2OGIwIiwicmlkIjoiOTYzNjk3NmEtNjE3Mi00MjlmLWIzN2UtNWVlN2Q2NGU5Y2VlIn0.eQKpGLqYqpWlVMxg4azq17-_5GkeGPaLvsBRyp0qtaFTxuJ8fOPHNaXhpEsJdLMKlCcx4nqHXsYfh4YOP5_kCg" {
 		return utils.ErrMissingAuthToken
 	}
 	return nil
