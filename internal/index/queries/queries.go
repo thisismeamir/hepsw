@@ -21,7 +21,7 @@ func New(db *sql.DB) *Queries {
 // GetPackageByName retrieves a package by its name
 func (q *Queries) GetPackageByName(ctx context.Context, name string) (*models.Package, error) {
 	query := `
-		SELECT id, name, description, documentation_url, maintainer, tags, created_at, updated_at
+		SELECT id, name, description, documentation_url, maintainer, tags, created_time, updated_time
 		FROM packages
 		WHERE name = ?
 	`
@@ -34,8 +34,8 @@ func (q *Queries) GetPackageByName(ctx context.Context, name string) (*models.Pa
 		&pkg.DocumentationURL,
 		&pkg.Maintainer,
 		&pkg.Tags,
-		&pkg.CreatedAt,
-		&pkg.UpdatedAt,
+		&pkg.CreatedTime,
+		&pkg.UpdatedTime,
 	)
 
 	if err == sql.ErrNoRows {
@@ -51,7 +51,7 @@ func (q *Queries) GetPackageByName(ctx context.Context, name string) (*models.Pa
 // GetPackageByID retrieves a package by its ID
 func (q *Queries) GetPackageByID(ctx context.Context, id int64) (*models.Package, error) {
 	query := `
-		SELECT id, name, description, documentation_url, maintainer, tags, created_at, updated_at
+		SELECT id, name, description, documentation_url, maintainer, tags, created_time, updated_time
 		FROM packages
 		WHERE id = ?
 	`
@@ -64,8 +64,8 @@ func (q *Queries) GetPackageByID(ctx context.Context, id int64) (*models.Package
 		&pkg.DocumentationURL,
 		&pkg.Maintainer,
 		&pkg.Tags,
-		&pkg.CreatedAt,
-		&pkg.UpdatedAt,
+		&pkg.CreatedTime,
+		&pkg.UpdatedTime,
 	)
 
 	if err == sql.ErrNoRows {
@@ -85,7 +85,7 @@ func (q *Queries) SearchPackages(ctx context.Context, searchTerm string, exactMa
 
 	if exactMatch {
 		query = `
-			SELECT id, name, description, documentation_url, maintainer, tags, created_at, updated_at
+			SELECT id, name, description, documentation_url, maintainer, tags, created_time, updated_time
 			FROM packages
 			WHERE name = ?
 			ORDER BY name
@@ -93,7 +93,7 @@ func (q *Queries) SearchPackages(ctx context.Context, searchTerm string, exactMa
 		args = []interface{}{searchTerm}
 	} else {
 		query = `
-			SELECT id, name, description, documentation_url, maintainer, tags, created_at, updated_at
+			SELECT id, name, description, documentation_url, maintainer, tags, created_time, updated_time
 			FROM packages
 			WHERE name LIKE ?
 			ORDER BY name
@@ -117,8 +117,8 @@ func (q *Queries) SearchPackages(ctx context.Context, searchTerm string, exactMa
 			&pkg.DocumentationURL,
 			&pkg.Maintainer,
 			&pkg.Tags,
-			&pkg.CreatedAt,
-			&pkg.UpdatedAt,
+			&pkg.CreatedTime,
+			&pkg.UpdatedTime,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan package: %w", err)
@@ -136,7 +136,7 @@ func (q *Queries) SearchPackages(ctx context.Context, searchTerm string, exactMa
 // ListPackages retrieves all packages with optional limit and offset
 func (q *Queries) ListPackages(ctx context.Context, limit, offset int) ([]models.Package, error) {
 	query := `
-		SELECT id, name, description, documentation_url, maintainer, tags, created_at, updated_at
+		SELECT id, name, description, documentation_url, maintainer, tags, created_time, updated_time
 		FROM packages
 		ORDER BY name
 		LIMIT ? OFFSET ?
@@ -158,8 +158,8 @@ func (q *Queries) ListPackages(ctx context.Context, limit, offset int) ([]models
 			&pkg.DocumentationURL,
 			&pkg.Maintainer,
 			&pkg.Tags,
-			&pkg.CreatedAt,
-			&pkg.UpdatedAt,
+			&pkg.CreatedTime,
+			&pkg.UpdatedTime,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan package: %w", err)
@@ -420,7 +420,7 @@ func (q *Queries) SearchByTags(ctx context.Context, tags []string) ([]models.Pac
 
 	// Build query with OR conditions for each tag
 	query := `
-		SELECT DISTINCT id, name, description, documentation_url, maintainer, tags, created_at, updated_at
+		SELECT DISTINCT id, name, description, documentation_url, maintainer, tags, created_time, updated_time
 		FROM packages
 		WHERE `
 
@@ -450,8 +450,8 @@ func (q *Queries) SearchByTags(ctx context.Context, tags []string) ([]models.Pac
 			&pkg.DocumentationURL,
 			&pkg.Maintainer,
 			&pkg.Tags,
-			&pkg.CreatedAt,
-			&pkg.UpdatedAt,
+			&pkg.CreatedTime,
+			&pkg.UpdatedTime,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan package: %w", err)

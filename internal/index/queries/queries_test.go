@@ -25,7 +25,7 @@ func setupTestDB(t *testing.T) *sql.DB {
 		documentation_url TEXT,
 		maintainer TEXT,
 		tags TEXT,
-		created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		created_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 		updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 	);
 
