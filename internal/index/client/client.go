@@ -387,6 +387,26 @@ func OpenLocalDatabase() (*sql.DB, error) {
 	return db, nil
 }
 
+// Creating a new local database for initialization process (No removing the old one, just creating a new one if it doesn't exist):
+func NewLocalDatabase() (*sql.DB, error) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return nil, fmt.Errorf("could not determine home directory: %w", err)
+	}
+
+	dbDir := filepath.Join(homeDir, ".hepsw")
+	dbPath := filepath.Join(dbDir, "index.db")
+
+	if _, err := os.Stat(dbPath); os.IsNotExist(err) {
+		if err := os.MkdirAll(dbDir, 0755); err != nil {
+			return nil, fmt.Errorf("failed to create database directory %s: %w", dbDir, err)
+		}
+	}
+
+	return OpenLocalDatabase()
+
+}
+
 // New creates a new HepSW index client
 func New(IndexConfig *configuration.IndexConfig) (*Client, error) {
 	// First tries to initialize using the local database at ~/.hepsw/index.db
