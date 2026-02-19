@@ -5,8 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/spf13/viper"
 	"github.com/thisismeamir/hepsw/internal/utils"
+	"gopkg.in/yaml.v3"
 )
 
 // ConfigHealth
@@ -19,41 +19,29 @@ func ConfigHealth() error {
 		return err
 	}
 	hepswConfigPath := filepath.Join(homeDir, ".hepsw", "hepsw.yaml")
-
-	// Does the configuration exist?
-	if _, err := os.Stat(hepswConfigPath); os.IsNotExist(err) {
-		return err
-	}
-	newConfig := viper.New()
-	newConfig.SetConfigType("yaml")
-	newConfig.SetConfigName("hepsw")
-	newConfig.AddConfigPath("/home/kid-a/.hepsw")
-
-	if err := newConfig.ReadInConfig(); err != nil {
-		return err
+	data, err2 := os.ReadFile(hepswConfigPath)
+	if err2 != nil {
+		return err2
 	}
 
 	var config Configuration
-	unmarshallingError := newConfig.Unmarshal(&config)
-	if unmarshallingError != nil {
-		return unmarshallingError
+	if yamlError := yaml.Unmarshal(data, &config); yamlError != nil {
+		return yamlError
 	}
 
-	info, directoryError := config.CheckDirectories()
-	if directoryError != nil {
-		return errors.New(directoryError.Error() + " named " + info)
+	// Check State
+	if err := config.CheckState(); err != nil {
+		return errors.New("State is not healthy: " + err.Error())
+	}
+	// Check Directories
+	if str, err := config.CheckDirectories(); err != nil {
+		return errors.New("Directory " + str + " is not healthy: " + err.Error())
 	}
 
-	stateError := config.CheckState()
-	if stateError != nil {
-		return stateError
+	// Check User Configurations
+	if err := config.CheckUserConfigurations(); err != nil {
+		return errors.New("User configurations are not healthy: " + err.Error())
 	}
-
-	userConfigError := config.CheckUserConfigurations()
-	if userConfigError != nil {
-		return userConfigError
-	}
-
 	return nil
 }
 
@@ -80,8 +68,8 @@ func (config *Configuration) CheckDirectories() (string, error) {
 	if _, err := utils.CheckDirectory(config.Toolchains); err != nil {
 		return "toolchains", err
 	}
-	if _, err := utils.CheckDirectory(config.Index); err != nil {
-		return "index", err
+	if _, err := utils.CheckDirectory(config.Manifests); err != nil {
+		return "manifests", err
 	}
 	if _, err := utils.CheckDirectory(config.Thirdparty); err != nil {
 		return "thirdparty", err
