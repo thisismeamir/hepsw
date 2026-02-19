@@ -337,7 +337,6 @@ func OpenRemoteDatabase(config *configuration.Configuration) (*sql.DB, error) {
 	// libsql driver expects: libsql://[host]?authToken=[token]
 	// DatabaseURL should already be in the form libsql://xxx.turso.io
 	connStr := fmt.Sprintf("%s?authToken=%s", config.IndexConfig.DatabaseURL, config.IndexConfig.AuthToken)
-
 	db, err := sql.Open("libsql", connStr)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", utils.ErrConnectionFailed, err)
@@ -366,17 +365,11 @@ func OpenLocalDatabase() (*sql.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not determine home directory: %w", err)
 	}
-
 	dbDir := filepath.Join(homeDir, ".hepsw")
 	dbPath := filepath.Join(dbDir, "index.db")
 
-	// Ensure the directory exists — no-op if it already does
-	if err := os.MkdirAll(dbDir, 0755); err != nil {
-		return nil, fmt.Errorf("failed to create database directory %s: %w", dbDir, err)
-	}
-
 	// "file:" URI is the portable way to open a local SQLite with the libsql driver
-	db, err := sql.Open("libsql", "file:"+dbPath)
+	db, err := sql.Open("sqlite3", "file://"+dbPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open local database, try sync --force for a fresh index: %w", err)
 	}
