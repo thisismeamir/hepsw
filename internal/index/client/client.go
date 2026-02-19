@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/thisismeamir/hepsw/internal/configuration"
 	"github.com/thisismeamir/hepsw/internal/index/cache"
 	"github.com/thisismeamir/hepsw/internal/index/queries"
