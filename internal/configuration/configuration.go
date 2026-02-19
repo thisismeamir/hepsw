@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/spf13/viper"
 	"github.com/thisismeamir/hepsw/internal/utils"
+	"gopkg.in/yaml.v3"
 )
 
 type Configuration struct {
@@ -89,7 +89,7 @@ func (c *Configuration) ValidateRemote() error {
 }
 
 // Saving configuration file in the user's home directory under .hepsw/hepsw.yaml
-func (c *Configuration) Save() error {
+func RestoreDefaultConfiguration() error {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return err
@@ -99,7 +99,6 @@ func (c *Configuration) Save() error {
 	// Checking the configuration file
 	configFilePath := filepath.Join(hepswPath, "hepsw.yaml")
 	if _, err := os.Stat(configFilePath); os.IsNotExist(err) {
-
 		config := Configuration{
 			Workspace:  hepswPath,
 			Sources:    path.Join(hepswPath, "sources"),
@@ -130,26 +129,12 @@ func (c *Configuration) Save() error {
 			},
 		}
 
-		newConfig := viper.New()
-		newConfig.SetConfigType("yaml")
-		newConfig.SetConfigFile(configFilePath)
-		newConfig.Set("workspace", config.Workspace)
-		newConfig.Set("builds", config.Builds)
-		newConfig.Set("sources", config.Sources)
-		newConfig.Set("envs", config.Envs)
-		newConfig.Set("installs", config.Installs)
-		newConfig.Set("toolchains", config.Toolchains)
-		newConfig.Set("thirdparty", config.Thirdparty)
-		newConfig.Set("logs", config.Logs)
-		newConfig.Set("manifests", config.Manifests)
-		newConfig.Set("indexconfig", config.IndexConfig)
-		newConfig.Set("state", config.State)
-		newConfig.Set("userConfig", config.UserConfig)
-
-		// Write the configuration to a file
-		writingError := newConfig.WriteConfigAs(configFilePath)
-		if writingError != nil {
-			return writingError
+		data, err := yaml.Marshal(&config)
+		if err != nil {
+			return err
+		}
+		if err := os.WriteFile(configFilePath, data, 0600); err != nil {
+			return err
 		}
 
 	} else {
@@ -158,5 +143,95 @@ func (c *Configuration) Save() error {
 		}
 	}
 	return nil
+
+}
+
+func SaveDefaultConfiguration() error {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+	hepswPath := path.Join(homeDir, ".hepsw")
+
+	// Checking the configuration file
+	configFilePath := filepath.Join(hepswPath, "hepsw.yaml")
+	config := Configuration{
+		Workspace:  hepswPath,
+		Sources:    path.Join(hepswPath, "sources"),
+		Builds:     path.Join(hepswPath, "builds"),
+		Installs:   path.Join(hepswPath, "installs"),
+		Envs:       path.Join(hepswPath, "envs"),
+		Toolchains: path.Join(hepswPath, "toolchains"),
+		Thirdparty: path.Join(hepswPath, "thirdparty"),
+		Logs:       path.Join(hepswPath, "logs"),
+		Manifests:  path.Join(hepswPath, "manifests"),
+		IndexConfig: IndexConfig{
+			DatabaseURL: "libsql://hepsw-index-thisismeamir.aws-ap-northeast-1.turso.io",
+			AuthToken:   "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicm8iLCJpYXQiOjE3NzEyMjY5MTQsImlkIjoiOWY2MzZiMWYtMGViYy00ZDJjLTlkODMtNDBmOTViODU2OGIwIiwicmlkIjoiOTYzNjk3NmEtNjE3Mi00MjlmLWIzN2UtNWVlN2Q2NGU5Y2VlIn0.eQKpGLqYqpWlVMxg4azq17-_5GkeGPaLvsBRyp0qtaFTxuJ8fOPHNaXhpEsJdLMKlCcx4nqHXsYfh4YOP5_kCg",
+			Timeout:     5 * time.Second,
+			MaxRetries:  3,
+			RetryDelay:  1 * time.Second,
+			CacheTTL:    1 * time.Hour,
+			EnableCache: true,
+		},
+		State: WorkspaceState{
+			Packages:     []WorkspacePackageState{},
+			Environments: []WorkspaceEnvironmentState{},
+			Sources:      []WorkspaceSourceState{},
+		},
+		UserConfig: UserConfig{
+			Verbosity:      "",
+			ParallelBuilds: 4,
+		},
+	}
+
+	data, err := yaml.Marshal(&config)
+	if err != nil {
+		return err
+	}
+	if err := os.WriteFile(configFilePath, data, 0600); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *Configuration) Save() error {
+	configFilePath := path.Join(c.Workspace, "hepsw.yaml")
+	data, err := yaml.Marshal(c)
+	if err != nil {
+		return err
+	}
+	err2 := os.WriteFile(configFilePath, data, 0600)
+	if err2 != nil {
+		return err2
+	}
+
+	return nil
+}
+
+func GetConfiguration() (*Configuration, error) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return nil, err
+	}
+	configFilePath := filepath.Join(homeDir, ".hepsw/hepsw.yaml")
+	if _, err := os.Stat(configFilePath); os.IsNotExist(err) {
+		return nil, err
+	}
+
+	data, err := os.ReadFile(configFilePath)
+	if err != nil {
+		return nil, err
+	}
+
+	config := &Configuration{}
+
+	err2 := yaml.Unmarshal(data, config)
+
+	if err2 != nil {
+		return nil, err2
+	}
+
+	return config, nil
 
 }
