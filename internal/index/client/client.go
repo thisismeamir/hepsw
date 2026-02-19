@@ -380,7 +380,7 @@ func OpenLocalDatabase() (*sql.DB, error) {
 
 	// Verify the file is actually a valid SQLite database (catches corruption)
 	if err := db.Ping(); err != nil {
-		db.Close()
+		_ = db.Close()
 		return nil, fmt.Errorf("local database is corrupt or unreadable, try sync --force: %w", err)
 	}
 
