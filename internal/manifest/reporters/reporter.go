@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/thisismeamir/hepsw/internal/manifest"
-	"gopkg.in/yaml.v3"
 )
 
 // ReportFormat specifies the output format for reports
@@ -29,15 +28,6 @@ func GenerateReport(m *manifest.Manifest, format ReportFormat) (string, error) {
 	default:
 		return "", fmt.Errorf("unsupported format: %s", format)
 	}
-}
-
-func generateJSONReport(m *manifest.Manifest) (string, error) {
-	// Use existing YAML marshaling since manifest is already structured
-	data, err := yaml.Marshal(m)
-	if err != nil {
-		return "", fmt.Errorf("failed to marshal manifest: %w", err)
-	}
-	return string(data), nil
 }
 
 // GenerateDependencyReport creates a dependency-focused report
