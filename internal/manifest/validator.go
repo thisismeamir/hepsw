@@ -7,7 +7,12 @@ import (
 	"strings"
 )
 
-// ValidationError represents a validation error
+type ValidationResult struct {
+	Valid    bool
+	Errors   []ValidationError
+	Warnings []ValidationError
+	Info     []ValidationError
+}
 type ValidationError struct {
 	Field    string
 	Message  string
@@ -18,15 +23,6 @@ func (ve ValidationError) String() string {
 	return fmt.Sprintf("[%s] %s: %s", strings.ToUpper(ve.Severity), ve.Field, ve.Message)
 }
 
-// ValidationResult contains the results of manifest validation
-type ValidationResult struct {
-	Valid    bool
-	Errors   []ValidationError
-	Warnings []ValidationError
-	Info     []ValidationError
-}
-
-// AddError adds an error to the validation result
 func (vr *ValidationResult) AddError(field, message string) {
 	vr.Valid = false
 	vr.Errors = append(vr.Errors, ValidationError{
