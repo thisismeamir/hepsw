@@ -9,6 +9,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/thisismeamir/hepsw/internal/manifest"
+	"github.com/thisismeamir/hepsw/internal/manifest/loader"
 	"github.com/thisismeamir/hepsw/internal/manifest/reporters"
 	"gopkg.in/yaml.v3"
 )
@@ -378,7 +379,7 @@ func runManifestFetch(cmd *cobra.Command, args []string) error {
 	fmt.Printf("Fetching manifest: %s\n", reference)
 
 	// Load from index
-	m, err := manifest.LoadManifestFromIndex(reference)
+	m, err := loader.LoadManifestFromIndex(reference)
 	if err != nil {
 		return fmt.Errorf("failed to fetch manifest: %w", err)
 	}
@@ -388,7 +389,7 @@ func runManifestFetch(cmd *cobra.Command, args []string) error {
 	outputPath := filepath.Join(fetchDestination, filename)
 
 	// Save manifest
-	if err := manifest.SaveManifest(m, outputPath); err != nil {
+	if err := loader.SaveManifest(m, outputPath); err != nil {
 		return fmt.Errorf("failed to save manifest: %w", err)
 	}
 
@@ -402,7 +403,7 @@ func runManifestStrip(cmd *cobra.Command, args []string) error {
 	manifestSource := args[0]
 
 	// Load manifest
-	m, err := manifest.LoadManifest(manifestSource)
+	m, err := loader.LoadManifest(manifestSource)
 	if err != nil {
 		return fmt.Errorf("failed to load manifest: %w", err)
 	}
@@ -416,7 +417,7 @@ func runManifestStrip(cmd *cobra.Command, args []string) error {
 	outputPath := base + ".minimal" + ext
 
 	// Save stripped manifest
-	if err := manifest.SaveManifest(stripped, outputPath); err != nil {
+	if err := loader.SaveManifest(stripped, outputPath); err != nil {
 		return fmt.Errorf("failed to save stripped manifest: %w", err)
 	}
 
@@ -430,7 +431,7 @@ func runManifestExplain(cmd *cobra.Command, args []string) error {
 	target := args[1]
 
 	// Load manifest
-	m, err := manifest.LoadManifest(manifestSource)
+	m, err := loader.LoadManifest(manifestSource)
 	if err != nil {
 		return fmt.Errorf("failed to load manifest: %w", err)
 	}
@@ -499,7 +500,7 @@ func runManifestGraph(cmd *cobra.Command, args []string) error {
 	manifestSource := args[0]
 
 	// Load manifest
-	m, err := manifest.LoadManifest(manifestSource)
+	m, err := loader.LoadManifest(manifestSource)
 	if err != nil {
 		return fmt.Errorf("failed to load manifest: %w", err)
 	}
@@ -600,7 +601,7 @@ func runManifestNew(cmd *cobra.Command, args []string) error {
 	}
 
 	// Save manifest
-	if err := manifest.SaveManifest(tmpl, outputPath); err != nil {
+	if err := loader.SaveManifest(tmpl, outputPath); err != nil {
 		return fmt.Errorf("failed to save manifest: %w", err)
 	}
 
@@ -648,7 +649,7 @@ func runManifestInit(cmd *cobra.Command, args []string) error {
 
 	// Save manifest
 	outputPath := fmt.Sprintf("%s.yaml", name)
-	if err := manifest.SaveManifest(m, outputPath); err != nil {
+	if err := loader.SaveManifest(m, outputPath); err != nil {
 		return fmt.Errorf("failed to save manifest: %w", err)
 	}
 
@@ -866,7 +867,7 @@ func runManifestDeps(cmd *cobra.Command, args []string) error {
 	manifestSource := args[0]
 
 	// Load manifest
-	m, err := manifest.LoadManifest(manifestSource)
+	m, err := loader.LoadManifest(manifestSource)
 	if err != nil {
 		return fmt.Errorf("failed to load manifest: %w", err)
 	}
@@ -919,7 +920,7 @@ func runManifestOptions(cmd *cobra.Command, args []string) error {
 	manifestSource := args[0]
 
 	// Load manifest
-	m, err := manifest.LoadManifest(manifestSource)
+	m, err := loader.LoadManifest(manifestSource)
 	if err != nil {
 		return fmt.Errorf("failed to load manifest: %w", err)
 	}
@@ -969,7 +970,7 @@ func runManifestEnv(cmd *cobra.Command, args []string) error {
 	manifestSource := args[0]
 
 	// Load manifest
-	m, err := manifest.LoadManifest(manifestSource)
+	m, err := loader.LoadManifest(manifestSource)
 	if err != nil {
 		return fmt.Errorf("failed to load manifest: %w", err)
 	}
@@ -1033,7 +1034,7 @@ func runManifestSource(cmd *cobra.Command, args []string) error {
 	manifestSource := args[0]
 
 	// Load manifest
-	m, err := manifest.LoadManifest(manifestSource)
+	m, err := loader.LoadManifest(manifestSource)
 	if err != nil {
 		return fmt.Errorf("failed to load manifest: %w", err)
 	}
@@ -1074,7 +1075,7 @@ func runManifestRecipe(cmd *cobra.Command, args []string) error {
 	manifestSource := args[0]
 
 	// Load manifest
-	m, err := manifest.LoadManifest(manifestSource)
+	m, err := loader.LoadManifest(manifestSource)
 	if err != nil {
 		return fmt.Errorf("failed to load manifest: %w", err)
 	}
@@ -1143,7 +1144,7 @@ func runManifestFormat(cmd *cobra.Command, args []string) error {
 	manifestPath := args[0]
 
 	// Load manifest
-	m, err := manifest.LoadManifest(manifestPath)
+	m, err := loader.LoadManifest(manifestPath)
 	if err != nil {
 		return fmt.Errorf("failed to load manifest: %w", err)
 	}
@@ -1168,12 +1169,12 @@ func runManifestDiff(cmd *cobra.Command, args []string) error {
 	manifest2Path := args[1]
 
 	// Load both manifests
-	m1, err := manifest.LoadManifest(manifest1Path)
+	m1, err := loader.LoadManifest(manifest1Path)
 	if err != nil {
 		return fmt.Errorf("failed to load first manifest: %w", err)
 	}
 
-	m2, err := manifest.LoadManifest(manifest2Path)
+	m2, err := loader.LoadManifest(manifest2Path)
 	if err != nil {
 		return fmt.Errorf("failed to load second manifest: %w", err)
 	}
@@ -1202,7 +1203,7 @@ func runManifestExport(cmd *cobra.Command, args []string) error {
 	manifestSource := args[0]
 
 	// Load manifest
-	m, err := manifest.LoadManifest(manifestSource)
+	m, err := loader.LoadManifest(manifestSource)
 	if err != nil {
 		return fmt.Errorf("failed to load manifest: %w", err)
 	}
@@ -1254,7 +1255,7 @@ func runManifestFlatten(cmd *cobra.Command, args []string) error {
 	manifestSource := args[0]
 
 	// Load manifest
-	m, err := manifest.LoadManifest(manifestSource)
+	m, err := loader.LoadManifest(manifestSource)
 	if err != nil {
 		return fmt.Errorf("failed to load manifest: %w", err)
 	}
@@ -1284,7 +1285,7 @@ func runManifestLint(cmd *cobra.Command, args []string) error {
 	manifestSource := args[0]
 
 	// Load manifest
-	m, err := manifest.LoadManifest(manifestSource)
+	m, err := loader.LoadManifest(manifestSource)
 	if err != nil {
 		return fmt.Errorf("failed to load manifest: %w", err)
 	}
@@ -1318,7 +1319,7 @@ func runManifestCheck(cmd *cobra.Command, args []string) error {
 	manifestSource := args[0]
 
 	// Load manifest
-	m, err := manifest.LoadManifest(manifestSource)
+	m, err := loader.LoadManifest(manifestSource)
 	if err != nil {
 		return fmt.Errorf("failed to load manifest: %w", err)
 	}
@@ -1523,7 +1524,7 @@ func runManifestValidate(cmd *cobra.Command, args []string) error {
 	manifestSource := args[0]
 
 	// Load manifest
-	m, err := manifest.LoadManifest(manifestSource)
+	m, err := loader.LoadManifest(manifestSource)
 	if err != nil {
 		return fmt.Errorf("failed to load manifest: %w", err)
 	}
@@ -1573,7 +1574,7 @@ func runManifestShow(cmd *cobra.Command, args []string) error {
 	manifestSource := args[0]
 
 	// Load manifest
-	m, err := manifest.LoadManifest(manifestSource)
+	m, err := loader.LoadManifest(manifestSource)
 	if err != nil {
 		return fmt.Errorf("failed to load manifest: %w", err)
 	}
@@ -1609,7 +1610,7 @@ func runManifestInspect(cmd *cobra.Command, args []string) error {
 	}
 
 	// Load manifest
-	m, err := manifest.LoadManifest(manifestSource)
+	m, err := loader.LoadManifest(manifestSource)
 	if err != nil {
 		return fmt.Errorf("failed to load manifest: %w", err)
 	}
@@ -1686,7 +1687,7 @@ func runManifestWalk(cmd *cobra.Command, args []string) error {
 	manifestSource := args[0]
 
 	// Load manifest
-	m, err := manifest.LoadManifest(manifestSource)
+	m, err := loader.LoadManifest(manifestSource)
 	if err != nil {
 		return fmt.Errorf("failed to load manifest: %w", err)
 	}
