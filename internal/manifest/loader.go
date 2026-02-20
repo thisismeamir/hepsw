@@ -1,6 +1,7 @@
 package manifest
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -8,6 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/thisismeamir/hepsw/internal/configuration"
+	"github.com/thisismeamir/hepsw/internal/index"
 	"github.com/thisismeamir/hepsw/internal/utils"
 	"gopkg.in/yaml.v3"
 )
@@ -51,60 +54,126 @@ func LoadManifestFromFile(path string) (*Manifest, error) {
 	return &m, nil
 }
 
-// LoadManifestFromIndex loads a manifest from the HepSW Package Index Repository
-func LoadManifestFromIndex(reference string) (*Manifest, error) {
-	// Parse reference: package@version or just package
-	parts := strings.Split(reference, "@")
-	packageName := parts[0]
-	version := "latest"
-	if len(parts) > 1 {
-		version = parts[1]
+func getManifestURL(packageName string, version string) (*string, error) {
+	config, configurationError := configuration.GetConfiguration()
+	if configurationError != nil {
+		return nil, fmt.Errorf("failed to load configuration: %w", configurationError)
+	}
+	newIndex, indexGenerationError := index.New(&config.IndexConfig)
+	if indexGenerationError != nil {
+		return nil, fmt.Errorf("failed to load index: %w", indexGenerationError)
 	}
 
-	var m Manifest
-	// Get index URL from config or environment
-	indexURL := getIndexURL()
-
-	// Construct manifest URL
-	manifestURL := filepath.Join(indexURL, packageName, version+".yaml")
-
-	if utils.IsFilePath(manifestURL) {
-		// Open the file of the manifest (This is a faster route if the index repository is locally available.
-		data, err := os.ReadFile(manifestURL)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read manifest file: %w", err)
+	manifestIndexEntry, manifestIndexEntryError := newIndex.GetPackage(context.Background(), packageName)
+	if manifestIndexEntryError != nil {
+		if strings.Contains(manifestIndexEntryError.Error(), "not found") {
+			return nil, fmt.Errorf("package not found in index: %s", packageName)
 		}
-		if err := yaml.Unmarshal(data, &m); err != nil {
-			return nil, fmt.Errorf("failed to parse manifest YAML from index: %w", err)
+		return nil, fmt.Errorf("failed to get package from index: %w", manifestIndexEntryError)
+	}
+
+	if version == "latest" {
+		manifest, fetchingURLError := newIndex.GetLatestVersion(context.Background(), manifestIndexEntry.Name)
+		if fetchingURLError != nil {
+			return nil, fmt.Errorf("failed to fetch latest version URL: %w", fetchingURLError)
 		}
-		return &m, nil
+		return &manifest.ManifestURL, nil
 	} else {
-		// Fetch manifest
-		resp, err := http.Get(manifestURL)
-		if err != nil {
-			return nil, fmt.Errorf("failed to fetch manifest from index: %w", err)
+		manifest, fetchingURLError := newIndex.GetVersion(context.Background(), manifestIndexEntry.Name, version)
+		if fetchingURLError != nil {
+			return nil, fmt.Errorf("failed to fetch version URL: %w", fetchingURLError)
 		}
-		defer resp.Body.Close()
-
-		if resp.StatusCode != http.StatusOK {
-			return nil, fmt.Errorf("manifest not found in index: %s (status: %d)", reference, resp.StatusCode)
-		}
-
-		// Read response
-		data, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read manifest from index: %w", err)
-		}
-
-		// Parse YAML
-
-		if err := yaml.Unmarshal(data, &m); err != nil {
-			return nil, fmt.Errorf("failed to parse manifest YAML from index: %w", err)
-		}
-
-		return &m, nil
-
+		return &manifest.ManifestURL, nil
 	}
+
+}
+func LoadManifestFromIndex(packageIdentifier string) (*Manifest, error) {
+	// Separate by @ to get package name and version
+	parts := strings.SplitN(packageIdentifier, "@", 2)
+	var packageName string
+	var version string
+	if len(parts) == 1 {
+		// assuming the latest package:
+		packageName = parts[0]
+		version = "latest"
+	} else if len(parts) == 2 {
+		packageName = parts[0]
+		version = parts[1]
+	} else {
+		return nil, fmt.Errorf("invalid package identifier format: %s", packageIdentifier)
+	}
+
+	//get manifest URL from index
+	manifestURL, urlFetchingError := getManifestURL(packageName, version)
+	if urlFetchingError != nil {
+		return nil, urlFetchingError
+	}
+
+	// Checking the validity of the URL (it must be YAML).
+	if !strings.HasSuffix(strings.ToLower(*manifestURL), ".yaml") &&
+		!strings.HasSuffix(strings.ToLower(*manifestURL), ".yml") {
+		return nil, fmt.Errorf("URL does not point to a YAML file: %s", manifestURL)
+	}
+
+	resp, err := http.Get(*manifestURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch manifest from index: %w", err)
+	}
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			fmt.Printf("Error closing response body: %v\n", err)
+		}
+	}(resp.Body)
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to fetch manifest: %s", resp.Status)
+	}
+
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read manifest from index: %w", err)
+	}
+
+	manifestPath, err := saveManifest(packageIdentifier, data)
+	if err != nil {
+		return nil, err
+	}
+
+	return ReadManifest(manifestPath)
+}
+
+func saveManifest(packageIdentifier string, data []byte) (string, error) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return "", fmt.Errorf("failed to determine user home directory: %w", err)
+	}
+
+	manifestsDir := filepath.Join(homeDir, ".hepsw", "manifests")
+	if err := os.MkdirAll(manifestsDir, 0755); err != nil {
+		return "", fmt.Errorf("failed to create manifests directory: %w", err)
+	}
+
+	manifestPath := filepath.Join(manifestsDir, packageIdentifier+".yaml")
+	if err := os.WriteFile(manifestPath, data, 0644); err != nil {
+		return "", fmt.Errorf("failed to save manifest to disk: %w", err)
+	}
+
+	return manifestPath, nil
+}
+
+func ReadManifest(manifestPath string) (*Manifest, error) {
+	data, err := os.ReadFile(manifestPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read manifest from disk: %w", err)
+	}
+
+	manifest := &Manifest{}
+	if err := yaml.Unmarshal(data, manifest); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal manifest: %w", err)
+	}
+
+	return manifest, nil
 }
 
 // LoadManifestFromReader loads a manifest from an io.Reader
@@ -134,19 +203,4 @@ func SaveManifest(m *Manifest, path string) error {
 	}
 
 	return nil
-}
-
-// getIndexURL returns the HepSW Package Index Repository URL
-func getIndexURL() string {
-	// Try environment variable first
-	if url := os.Getenv("HEPSW_INDEX_URL"); url != "" {
-		return url
-	}
-
-	// Try config file
-	// TODO: Implement config file reading
-
-	// Default to official repository (To be used later
-	//return "https://index.hepsw.org"
-	return filepath.Join(os.UserHomeDir(), "index.yaml")
 }
