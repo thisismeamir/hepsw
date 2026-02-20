@@ -39,7 +39,7 @@ func runInit(cmd *cobra.Command, args []string) error {
 	}
 
 	// Creating subdirectories
-	subdirectories := []string{"toolchains", "sources", "builds", "installs", "envs", "logs", "thirdparty"}
+	subdirectories := []string{"toolchains", "sources", "builds", "installs", "envs", "logs", "thirdparty", "manifests"}
 
 	for _, item := range subdirectories {
 		err = utils.CreateDirectory(hepswPath + "/" + item)
@@ -51,7 +51,6 @@ func runInit(cmd *cobra.Command, args []string) error {
 	PrintSuccess("HepSW directory is ready!")
 
 	// Syncing local index with the remote repository.
-	//_ = Sync()
 	_ = ConfigInit()
 	return nil
 }

@@ -11,7 +11,7 @@ CREATE TABLE packages (
     documentation_url TEXT,
     maintainer TEXT,
     tags TEXT, -- Comma-separated tags: "hep,analysis,cern"
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 

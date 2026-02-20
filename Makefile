@@ -7,6 +7,7 @@ LDFLAGS=-ldflags "-X main.Version=$(VERSION)"
 
 build:
 	@echo "Building $(BINARY_NAME)..."
+	@export CGO_ENABLED=1
 	@go build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME) ./cmd/hepsw
 
 install: build

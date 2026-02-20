@@ -1,79 +1,32 @@
 package cli
 
 import (
-	"os"
-	"path/filepath"
-
 	"github.com/spf13/cobra"
-	"github.com/thisismeamir/hepsw/internal/remote"
+	"github.com/thisismeamir/hepsw/internal/configuration"
+	"github.com/thisismeamir/hepsw/internal/index/client"
 )
 
 var syncCmd = &cobra.Command{
-	Use:   "sync",
-	Short: "Synchronizes changes in index repository with the ones on remote.",
-	Long: `Synchronizes changes in index repository with the ones on remote.
-if a change has been made to this repository the program would automatically remove it, ensuring that the repository stays 
-relevant to the remote one.`,
-	Args: cobra.NoArgs,
+	Use:     "sync",
+	Short:   "Synchronizes local database with remote database",
+	Long:    `Synchronizes local database in ~/.hepsw/index.db with the remote database online, ensuring we have access to updates, and new software that can be installed.`,
+	Version: "0.0.1",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return Sync()
+		return sync()
 	},
 }
 
-func Sync() error {
-	homeDir, err := os.UserHomeDir()
+func sync() error {
+	config, configErr := configuration.GetConfiguration()
+	if configErr != nil {
+		return configErr
+	}
+
+	cl, err := client.New(&config.IndexConfig)
+
 	if err != nil {
 		return err
 	}
-	hepswPath := filepath.Join(homeDir, ".hepsw")
-	// Fetching and initializing index repo
-	repoDir := hepswPath + "/index"
-	// Check if the index repo exists
-	repoExists := remote.RepoExists(repoDir)
-	if repoExists {
-		repo, err := remote.OpenRepo(repoDir)
-		if err != nil {
-			PrintError("Error opening repo " + err.Error())
-			return err
-		}
-		repoHasChanges, err := remote.HasLocalChanges(repo)
-		if err != nil {
-			PrintError("Error checking if repo has changes " + err.Error())
-			return err
-		}
-		if repoHasChanges {
-			PrintWarning("You should not edit the content of index repo, resetting local changes...")
-			err := remote.ResetLocalChanges(repo)
-			if err != nil {
-				PrintError("Error resetting local changes " + err.Error())
-				return err
-			}
-		}
-		repoHasUpdate, err := remote.HasRemoteUpdates(repo, "master")
-		if repoHasUpdate {
-			PrintInfo("Index repo has updates.")
-			err := remote.FetchRemote(repo, "master")
-			if err != nil {
-				PrintError("Error fetching remote " + err.Error())
-				PrintWarning("Might not be update repository for better indexing.")
-				return err
-			}
-			err = remote.PullChanges(repo, "master")
-			if err != nil {
-				PrintError("Error pulling changes " + err.Error())
-				PrintWarning("Might not be update repository for better indexing.")
-				return err
-			}
-			PrintInfo("Index repo has been updated.")
-		}
-	} else {
-		PrintWarning("HepSW directory does not contain index repository cloning...")
-		err := remote.CloneRepo(repoDir, "master")
-		if err != nil {
-			PrintError("Error cloning repo " + err.Error())
-			return err
-		}
-	}
 
-	return nil
+	return cl.Sync(config)
 }
