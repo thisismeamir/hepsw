@@ -9,6 +9,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/thisismeamir/hepsw/internal/manifest"
+	"github.com/thisismeamir/hepsw/internal/manifest/reporters"
 	"gopkg.in/yaml.v3"
 )
 
@@ -1227,7 +1228,7 @@ func runManifestExport(cmd *cobra.Command, args []string) error {
 		output = generateLockfile(m)
 
 	case "report":
-		output, err = manifest.GenerateReport(m, manifest.FormatText)
+		output, err = reporters.GenerateReport(m, reporters.FormatText)
 		if err != nil {
 			return fmt.Errorf("failed to generate report: %w", err)
 		}
@@ -1581,13 +1582,13 @@ func runManifestShow(cmd *cobra.Command, args []string) error {
 	var output string
 	switch showFormat {
 	case "text":
-		output, err = manifest.GenerateReport(m, manifest.FormatText)
+		output, err = reporters.GenerateReport(m, reporters.FormatText)
 	case "yaml":
-		output, err = manifest.GenerateReport(m, manifest.FormatJSON) // Will output YAML
+		output, err = reporters.GenerateReport(m, reporters.FormatJSON) // Will output YAML
 	case "json":
-		output, err = manifest.GenerateReport(m, manifest.FormatJSON)
+		output, err = reporters.GenerateReport(m, reporters.FormatJSON)
 	case "markdown", "md":
-		output, err = manifest.GenerateReport(m, manifest.FormatMarkdown)
+		output, err = reporters.GenerateReport(m, reporters.FormatMarkdown)
 	default:
 		return fmt.Errorf("unsupported format: %s", showFormat)
 	}
