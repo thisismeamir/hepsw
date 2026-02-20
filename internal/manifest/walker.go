@@ -2,6 +2,8 @@ package manifest
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -160,15 +162,21 @@ func evaluateConditional(condition string, options []string, variables map[strin
 	return true, fmt.Sprintf("Cannot evaluate condition: %s", condition)
 }
 
-func initializeDefaultVariables(variables map[string]string, m *Manifest) {
+func initializeDefaultVariables(variables map[string]string, m *Manifest) error {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+
+	hepswPath := filepath.Join(homeDir, ".hepsw")
+
 	variables["PACKAGE_NAME"] = m.Name
 	variables["PACKAGE_VERSION"] = m.Version
 	variables["SOURCE_TYPE"] = m.Source.Type
 	variables["SOURCE_URL"] = m.Source.Url
-	variables["NCORES"] = "4" // Default value
-	variables["INSTALL_PREFIX"] = "/opt/hepsw/" + m.Name
-	variables["SOURCE_DIR"] = "/tmp/hepsw/src/" + m.Name
-	variables["BUILD_DIR"] = "/tmp/hepsw/build/" + m.Name
+	variables["INSTALL_PREFIX"] = filepath.Join(hepswPath, "installs", m.Name, m.Version)
+	variables["SOURCE_DIR"] = filepath.Join(hepswPath, "sources", m.Name, m.Version)
+	variables["BUILD_DIR"] = filepath.Join(hepswPath, "builds", m.Name, m.Version)
 
 	// Add build variables from manifest
 	for _, varMap := range m.Specifications.Build.Variables {
@@ -176,6 +184,7 @@ func initializeDefaultVariables(variables map[string]string, m *Manifest) {
 			variables[k] = v
 		}
 	}
+	return nil
 }
 
 func expandVariables(input string, variables map[string]string) string {
