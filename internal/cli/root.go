@@ -6,6 +6,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
+	"github.com/thisismeamir/hepsw/internal/cli/manifestCmd"
 	"github.com/thisismeamir/hepsw/internal/configuration"
 	"github.com/thisismeamir/hepsw/internal/utils"
 )
@@ -60,7 +61,7 @@ func init() {
 	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(checkConfig)
 	rootCmd.AddCommand(syncCmd)
-	rootCmd.AddCommand(manifestCmd)
+	rootCmd.AddCommand(manifestCmd.manifestCmd)
 }
 
 func hepswInit() {
