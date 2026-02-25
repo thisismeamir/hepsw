@@ -4,8 +4,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// manifestCmd represents the manifest command
-var manifestCmd = &cobra.Command{
+// ManifestCmd represents the manifest command
+var ManifestCmd = &cobra.Command{
 	Use:   "manifest",
 	Short: "Manifest management commands",
 	Long: `Commands for creating, validating, inspecting, and managing HepSW manifests.
@@ -287,10 +287,10 @@ based on the provided options and variables.`,
 }
 
 func init() {
-	manifestCmd.AddCommand(manifestFetchCmd)
-	manifestCmd.AddCommand(manifestStripCmd)
-	manifestCmd.AddCommand(manifestExplainCmd)
-	manifestCmd.AddCommand(manifestGraphCmd)
+	ManifestCmd.AddCommand(manifestFetchCmd)
+	ManifestCmd.AddCommand(manifestStripCmd)
+	ManifestCmd.AddCommand(manifestExplainCmd)
+	ManifestCmd.AddCommand(manifestGraphCmd)
 
 	manifestFetchCmd.Flags().StringVarP(&fetchDestination, "dest", "d", ".",
 		"Destination directory for downloaded manifest")
@@ -298,19 +298,19 @@ func init() {
 	manifestStripCmd.Flags().BoolVar(&stripMinimal, "minimal", false,
 		"Create absolute minimal manifest (only required fields)")
 
-	manifestCmd.AddCommand(manifestNewCmd)
-	manifestCmd.AddCommand(manifestInitCmd)
+	ManifestCmd.AddCommand(manifestNewCmd)
+	ManifestCmd.AddCommand(manifestInitCmd)
 
 	manifestNewCmd.Flags().StringVarP(&manifestNewTemplate, "template", "t", "minimal",
 		"Template to use (minimal, cmake, autotools, git, tarball)")
 	manifestNewCmd.Flags().StringVarP(&manifestNewOutput, "output", "o", "",
 		"Output file path (default: <name>.yaml)")
 
-	manifestCmd.AddCommand(manifestDepsCmd)
-	manifestCmd.AddCommand(manifestOptionsCmd)
-	manifestCmd.AddCommand(manifestEnvCmd)
-	manifestCmd.AddCommand(manifestSourceCmd)
-	manifestCmd.AddCommand(manifestRecipeCmd)
+	ManifestCmd.AddCommand(manifestDepsCmd)
+	ManifestCmd.AddCommand(manifestOptionsCmd)
+	ManifestCmd.AddCommand(manifestEnvCmd)
+	ManifestCmd.AddCommand(manifestSourceCmd)
+	ManifestCmd.AddCommand(manifestRecipeCmd)
 
 	manifestDepsCmd.Flags().StringVarP(&depsFormat, "format", "f", "tree",
 		"Output format (tree, list, json)")
@@ -323,12 +323,12 @@ func init() {
 	manifestRecipeCmd.Flags().StringSliceVarP(&walkOptions, "options", "o", []string{},
 		"Build options to enable")
 
-	manifestCmd.AddCommand(manifestFormatCmd)
-	manifestCmd.AddCommand(manifestDiffCmd)
-	manifestCmd.AddCommand(manifestExportCmd)
-	manifestCmd.AddCommand(manifestFlattenCmd)
-	manifestCmd.AddCommand(manifestLintCmd)
-	manifestCmd.AddCommand(manifestCheckCmd)
+	ManifestCmd.AddCommand(manifestFormatCmd)
+	ManifestCmd.AddCommand(manifestDiffCmd)
+	ManifestCmd.AddCommand(manifestExportCmd)
+	ManifestCmd.AddCommand(manifestFlattenCmd)
+	ManifestCmd.AddCommand(manifestLintCmd)
+	ManifestCmd.AddCommand(manifestCheckCmd)
 
 	manifestFormatCmd.Flags().IntVar(&formatIndent, "indent", 2,
 		"Number of spaces for indentation")
@@ -346,10 +346,10 @@ func init() {
 	manifestFlattenCmd.Flags().StringVar(&flattenOutput, "output", "",
 		"Output file (default: stdout)")
 
-	manifestCmd.AddCommand(manifestValidateCmd)
-	manifestCmd.AddCommand(manifestShowCmd)
-	manifestCmd.AddCommand(manifestInspectCmd)
-	manifestCmd.AddCommand(manifestWalkCmd)
+	ManifestCmd.AddCommand(manifestValidateCmd)
+	ManifestCmd.AddCommand(manifestShowCmd)
+	ManifestCmd.AddCommand(manifestInspectCmd)
+	ManifestCmd.AddCommand(manifestWalkCmd)
 
 	manifestValidateCmd.Flags().BoolVarP(&validateVerbose, "verbose", "v", false,
 		"Show detailed validation information")
