@@ -60,8 +60,7 @@ func init() {
 	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(checkConfig)
 	rootCmd.AddCommand(syncCmd)
-	rootCmd.AddCommand(sampleGenCmd)
-	rootCmd.AddCommand(searchCmd)
+	rootCmd.AddCommand(manifestCmd)
 }
 
 func hepswInit() {
@@ -77,7 +76,7 @@ func PrintSuccess(msg string) {
 	fmt.Println(colorSuccess("[SUCC] ") + msg)
 }
 
-func PrintError(msg string) {
+func PrintError(msg ...string) {
 	// TODO: What the hell is to be handled for a print function anyway?
 	fprintln, err := fmt.Fprintln(os.Stderr, colorError("[ERR!] "), msg)
 	if err != nil {
@@ -86,17 +85,17 @@ func PrintError(msg string) {
 	_ = fprintln
 }
 
-func PrintWarning(msg string) {
-	fmt.Println(colorWarning("[WARN] ") + msg)
+func PrintWarning(msg ...string) {
+	fmt.Println(colorWarning("[WARN] "), msg)
 }
 
-func PrintInfo(msg string) {
+func PrintInfo(msg ...string) {
 	if !quiet {
-		fmt.Println(colorInfo("[INFO] ") + msg)
+		fmt.Println(colorInfo("[INFO] "), msg)
 	}
 }
 
-func PrintSection(msg string) {
+func PrintSection(msg ...string) {
 	if !quiet {
 		fmt.Println(colorHeader("=> "), msg)
 	}
