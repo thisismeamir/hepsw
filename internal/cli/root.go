@@ -61,6 +61,8 @@ func init() {
 	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(checkConfig)
 	rootCmd.AddCommand(syncCmd)
+	rootCmd.AddCommand(searchCmd)
+	rootCmd.AddCommand(infoCmd)
 	rootCmd.AddCommand(manifestCmd.ManifestCmd)
 }
 
