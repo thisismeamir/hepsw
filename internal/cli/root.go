@@ -73,8 +73,8 @@ func hepswInit() {
 
 // Helper functions for colored output
 
-func PrintSuccess(msg ...string) {
-	fmt.Println(colorSuccess("[SUCC] "), msg)
+func PrintSuccess(msg string) {
+	fmt.Println(colorSuccess("[SUCC] ") + msg)
 }
 
 func PrintError(msg ...string) {
