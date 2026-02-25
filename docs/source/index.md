@@ -18,11 +18,8 @@ This documentation serves as a practical guide to using HepSW: understanding the
 
 00-introduction/index
 01-basics/index
-03-dependencies/index
-04-build-guides/index
-05-environments/index
-06-advanced/index
-07-troubleshooting/index
-08-contribution/index
-09-architecture-and-design/index
+02-manifests/index
+03-building/index
+04-advanced-topics/index
+05-troubleshooting/index
 ```

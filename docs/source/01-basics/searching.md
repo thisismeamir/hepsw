@@ -2,39 +2,12 @@
 
 You can search for specific packages in HepSW using the `hepsw search` command. This command allows you to find packages by name, description, or other metadata defined in their manifest files. 
 
-There are two types of searches you can perform; one is in the local workspace and the other is in the upstream index.
-
 ```bash
-hepsw search --local <package-name>
+hepsw search <identifiers>
 ```
 
-and 
 
-```bash
-hepsw search --remote <package-name>
-```
 
-if the flag is not provided, it will search in the local and remote and show results from both.
-
-For example, to search for a package named "root" in the local workspace, you would run:
-
-```bash
-hepsw search --local root
-```
-
-Which would return something like:
-
-```text
-Found 1 package(s) in local workspace:
-- root
-  Version: 6.24/06
-  Description: An object-oriented framework for large scale data analysis
-```
-To search for the same package in the upstream index, you would run:
-
-```bash
-hepsw search --remote root
-```
 Which would return something like:
 
 ```text

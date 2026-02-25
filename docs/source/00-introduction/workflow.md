@@ -8,39 +8,9 @@ The goal of HepSW is to empower you with the knowledge and tools to understand a
 
 ## Getting Started
 
-HepSW is has a command-line interface (CLI) toolkit written in Go to help with common tasks. You can install it via different package managers, or just use this repository as a source.
+### Installation
 
-```bash
-git clone https://github.com/thisismeamir/hepsw.git
-```
+Currently, HepSW is in early stages, and it is not a production-level software; it is advised that you would install it for development purposes only that. You can find possible releases and source-code at the GitHub repository:
 
-```bash
-sudo apt-get install hepsw # On Debian/Ubuntu
-sudo dnf install hepsw     # On Fedora
-sudo pacman -S hepsw       # On Arch Linux
-```
-
-Once installed, you can use the `hepsw` command to interact with the HepSW system. 
-
-### Initializing a HepSW Workspace
-To get started, you need to initialize a HepSW workspace. This will set up the necessary directory structure and configuration files.
-
-```bash
-hepsw init /path/to/hepsw-workspace
-cd /path/to/hepsw-workspace
-```
-
-This will create a directory structure like below:
-
-```text
-/hepsw-workspace/
-├── toolchains/        # compilers and core build tools
-├── sources/           # cloned repositories and source tarballs
-├── builds/            # out-of-source build directories
-├── install/           # install prefixes
-├── env/               # environment setup scripts
-└── logs/              # build logs and command history
-```
-
-
+https://github.com/thisismeamir/hepsw
 

@@ -1,5 +1,8 @@
 # Distribution Packaging Guide
 
+! DISCLAIMER: THIS DOCUMENT IS ONLY FOR THE PURPOSE OF IDENTIFYING OUR APPROACH, HEPSW IS CURRENTLY ON THE EARLY STAGES AND DOESN'T HAVE ANY INSTALLATION METHOD AVAILABLE.
+
+
 This document explains how HepSW is packaged for different Linux distributions.
 
 ## Automated Releases
@@ -35,10 +38,10 @@ git push origin v0.1.0
 
 ## Installation Methods
 
-### Quick Install Script
+### Quick Installation Script
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/thisismeamir/hepsw/main/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/thisismeamir/hepsw/main/ | make build
 ```
 
 ### Direct Binary Download

@@ -11,7 +11,6 @@ Finally, we will discuss best practices and tips for effectively using HepSW in 
 :maxdepth: 2
 :numbered:
 01-basics/initialization
-01-basics/basics-of-manifests
 01-basics/searching
 01-basics/fetching
 01-basics/building
